@@ -14,6 +14,13 @@ export interface Service {
   desc: string;
   sop: string[];
   avgWait: number;
+  // Optional fields populated when sourced from API (workflow 08).
+  sop_pdf_url?: string | null;
+  qr_url?: string | null;
+  color_bg?: string;
+  color_fg?: string;
+  color_border?: string;
+  is_active?: boolean;
 }
 
 export interface Counter {

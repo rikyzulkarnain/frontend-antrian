@@ -1,5 +1,6 @@
 'use client';
 import Image from 'next/image';
+import { QRCodeSVG } from 'qrcode.react';
 import { useClock } from '@/hooks/useClock';
 import { fmtTime } from '@/lib/format';
 import { getSvcBg, getSvcBorder, getSvcFg, type Service } from '@/lib/constants';
@@ -12,6 +13,9 @@ interface SOPViewerProps {
 
 export function SOPViewer({ svc, onConfirm, onBack }: SOPViewerProps) {
   const clock = useClock();
+  const bg = svc.color_bg ?? getSvcBg(svc.key);
+  const fg = svc.color_fg ?? getSvcFg(svc.key);
+  const border = svc.color_border ?? getSvcBorder(svc.key);
   return (
     <>
       <div className="kiosk-head" style={{ marginTop: 24 }}>
@@ -34,9 +38,9 @@ export function SOPViewer({ svc, onConfirm, onBack }: SOPViewerProps) {
           <div
             className="glyph-lg"
             style={{
-              background: getSvcBg(svc.key),
-              color: getSvcFg(svc.key),
-              border: `1px solid ${getSvcBorder(svc.key)}`,
+              background: bg,
+              color: fg,
+              border: `1px solid ${border}`,
             }}
           >
             {svc.glyph}
@@ -56,6 +60,32 @@ export function SOPViewer({ svc, onConfirm, onBack }: SOPViewerProps) {
             </div>
           ))}
         </div>
+        {(svc.sop_pdf_url || svc.qr_url) && (
+          <div
+            className="sop-extras"
+            style={{ display: 'flex', gap: 16, marginTop: 16, alignItems: 'flex-start' }}
+          >
+            {svc.sop_pdf_url && (
+              <a
+                href={svc.sop_pdf_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="kiosk-cta"
+                style={{ flex: 1 }}
+              >
+                Lihat SOP lengkap (PDF) →
+              </a>
+            )}
+            {svc.qr_url && (
+              <div style={{ textAlign: 'center' }}>
+                <QRCodeSVG value={svc.qr_url} size={132} />
+                <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 6 }}>
+                  Scan untuk akses aplikasi/portal
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         <div className="sop-confirm">
           <svg
             width="28"

@@ -2,15 +2,16 @@
 import Image from 'next/image';
 import { useClock } from '@/hooks/useClock';
 import { fmtDate, fmtTime } from '@/lib/format';
-import { SERVICES, type Service } from '@/lib/constants';
+import { type Service } from '@/lib/constants';
 import { ServiceCard } from './service-card';
 
 interface ServiceSelectorProps {
+  services: Service[];
   onPick: (svc: Service) => void;
   onCancel: () => void;
 }
 
-export function ServiceSelector({ onPick, onCancel }: ServiceSelectorProps) {
+export function ServiceSelector({ services, onPick, onCancel }: ServiceSelectorProps) {
   const clock = useClock();
   return (
     <>
@@ -69,7 +70,7 @@ export function ServiceSelector({ onPick, onCancel }: ServiceSelectorProps) {
       </div>
       <div className="kiosk-body">
         <div className="service-grid">
-          {SERVICES.map((s) => (
+          {services.map((s) => (
             <ServiceCard key={s.key} service={s} onPick={onPick} />
           ))}
           <div

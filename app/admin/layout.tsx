@@ -37,7 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user) return null;
 
   return (
-    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24 }}>
+    <div className="live-shell">
       <div className="admin screen" data-screen-label="03 Admin & Staff">
         <AdminSidebar />
         <main className="admin-main">

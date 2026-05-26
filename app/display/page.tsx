@@ -44,7 +44,7 @@ export default function DisplayPage() {
   });
 
   return (
-    <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24 }}>
+    <main className="live-shell">
       <div className="display screen" data-screen-label="02 Display TV">
         <VideoBackground />
         <CurrentQueueBoard queues={queues} counters={counters} />

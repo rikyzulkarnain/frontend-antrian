@@ -46,6 +46,12 @@ export const Icons = {
       <path d="M3 13c0-2.5 2-4 5-4s5 1.5 5 4" strokeLinecap="round" />
     </svg>
   ),
+  services: (
+    <svg className="ic16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="3" y="2.5" width="10" height="11" rx="1" />
+      <path d="M5.5 5.5h5M5.5 8h5M5.5 10.5h3" strokeLinecap="round" />
+    </svg>
+  ),
   videos: (
     <svg className="ic16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
       <rect x="2" y="3" width="12" height="10" rx="1.5" />

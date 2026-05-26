@@ -8,6 +8,7 @@ const TITLES: Record<AdminView, [string, string]> = {
   staff: ['Panggil Antrian', 'Operasional · Loket'],
   dashboard: ['Dashboard Analitik', 'Manajemen · Laporan harian'],
   counters: ['Manajemen Loket', 'Manajemen · Konfigurasi'],
+  services: ['Manajemen Layanan', 'Manajemen · SOP, PDF, & QR'],
   users: ['Pengguna & Staff', 'Manajemen · Akses & peran'],
   videos: ['Konten Video', 'Manajemen · Playlist Kiosk & Display'],
   analytics: ['Analitik', 'Manajemen · Tren & insight'],
@@ -17,6 +18,7 @@ const TITLES: Record<AdminView, [string, string]> = {
 function viewFromPath(pathname: string): AdminView {
   if (pathname.startsWith('/admin/queue')) return 'staff';
   if (pathname.startsWith('/admin/counters')) return 'counters';
+  if (pathname.startsWith('/admin/services')) return 'services';
   if (pathname.startsWith('/admin/users')) return 'users';
   if (pathname.startsWith('/admin/videos')) return 'videos';
   if (pathname.startsWith('/admin/analytics')) return 'analytics';

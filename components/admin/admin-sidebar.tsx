@@ -8,12 +8,21 @@ import { authApi } from '@/lib/authApi';
 import { Icons } from './admin-icons';
 import { cn } from '@/lib/utils';
 
-export type AdminView = 'staff' | 'dashboard' | 'counters' | 'users' | 'videos' | 'analytics' | 'profile';
+export type AdminView =
+  | 'staff'
+  | 'dashboard'
+  | 'counters'
+  | 'services'
+  | 'users'
+  | 'videos'
+  | 'analytics'
+  | 'profile';
 
 const ROUTES: Record<AdminView, string> = {
   staff: '/admin/queue',
   dashboard: '/admin',
   counters: '/admin/counters',
+  services: '/admin/services',
   users: '/admin/users',
   videos: '/admin/videos',
   analytics: '/admin/analytics',
@@ -94,6 +103,13 @@ export function AdminSidebar() {
               label="Loket"
               active={isActive('counters')}
               count={COUNTERS.length}
+            />
+            <NavItem
+              href={ROUTES.services}
+              icon={Icons.services}
+              label="Layanan"
+              active={isActive('services')}
+              count={5}
             />
             <NavItem
               href={ROUTES.users}

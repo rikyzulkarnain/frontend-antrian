@@ -1,14 +1,26 @@
 'use client';
+import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useClock } from '@/hooks/useClock';
 import { fmtTime } from '@/lib/format';
 import { useCurrentQueues } from '@/hooks/useCurrentQueues';
+import { useVideoPlaylist } from '@/hooks/useVideoPlaylist';
 
 export function IdleScreen() {
   const clock = useClock();
   const queues = useCurrentQueues();
+  const { current, index, total, advance } = useVideoPlaylist('kiosk');
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const waitingCount = queues.filter((q) => q.status === 'waiting').length;
   const callingNow = queues.find((q) => q.status === 'calling');
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (el && current) {
+      el.load();
+      el.play().catch(() => undefined);
+    }
+  }, [current?.id, current]);
 
   return (
     <div className="screensaver">
@@ -64,20 +76,49 @@ export function IdleScreen() {
         </div>
       </div>
       <div className="vid-stage">
-        <div className="vid-fake" />
-        <div className="vid-grain" />
+        {current ? (
+          <video
+            ref={videoRef}
+            src={current.url}
+            autoPlay
+            muted
+            playsInline
+            onEnded={advance}
+            onError={advance}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              background: '#06090f',
+            }}
+          />
+        ) : (
+          <>
+            <div className="vid-fake" />
+            <div className="vid-grain" />
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundImage: "url('/assets/songket-motif.svg')",
+                backgroundSize: '140px 140px',
+                backgroundRepeat: 'repeat',
+                opacity: 0.05,
+                mixBlendMode: 'screen',
+              }}
+            />
+          </>
+        )}
         <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: "url('/assets/songket-motif.svg')",
-            backgroundSize: '140px 140px',
-            backgroundRepeat: 'repeat',
-            opacity: 0.05,
-            mixBlendMode: 'screen',
-          }}
-        />
-        <div className="vid-overlay">
+          className="vid-overlay"
+          style={
+            current
+              ? { background: 'linear-gradient(180deg, transparent 35%, rgba(6,9,15,.85))' }
+              : undefined
+          }
+        >
           <div
             style={{
               display: 'flex',
@@ -97,18 +138,24 @@ export function IdleScreen() {
               }}
             />
             <span style={{ fontFamily: 'var(--font-mono)', letterSpacing: '0.06em' }}>
-              SEDANG TAYANG · PROFIL LAYANAN 2026
+              {current
+                ? `SEDANG TAYANG · ${current.title}${total > 1 ? ` · ${index + 1}/${total}` : ''}`
+                : 'SEDANG TAYANG · PROFIL LAYANAN 2026'}
             </span>
           </div>
-          <h2>
-            Selamat datang.
-            <br />
-            Layanan dimulai dari sentuhan Anda.
-          </h2>
-          <p>
-            Sistem antrian digital ini membantu Anda memilih layanan, membaca SOP, dan mendapatkan
-            nomor antrian dalam beberapa detik.
-          </p>
+          {!current && (
+            <>
+              <h2>
+                Selamat datang.
+                <br />
+                Layanan dimulai dari sentuhan Anda.
+              </h2>
+              <p>
+                Sistem antrian digital ini membantu Anda memilih layanan, membaca SOP, dan
+                mendapatkan nomor antrian dalam beberapa detik.
+              </p>
+            </>
+          )}
         </div>
       </div>
       <div className="vid-bottom">
