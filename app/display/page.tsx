@@ -46,7 +46,7 @@ export default function DisplayPage() {
   return (
     <main className="live-shell">
       <div className="display screen" data-screen-label="02 Display TV">
-        <VideoBackground />
+        <VideoBackground audioEnabled={audioActivated} showDebugControls />
         <CurrentQueueBoard queues={queues} counters={counters} />
         <DisplayTicker />
         <QueueAnnouncement banner={banner} onDismiss={() => setBanner(null)} />
@@ -59,7 +59,7 @@ export default function DisplayPage() {
             }}
             style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 100 }}
           >
-            Aktifkan suara pengumuman
+            Aktifkan suara video & pengumuman
           </button>
         )}
       </div>

@@ -177,31 +177,34 @@ export const STAFF_PERF: StaffPerfRow[] = [
 // Pass null to get a neutral fallback for un-assigned counters.
 export function getSvcBg(k: ServiceType | null): string {
   if (!k) return 'oklch(0.96 0 0)';
-  return ({
+  const map: Record<string, string> = {
     UMUM: 'oklch(0.96 0.04 250)',
     LAB:  'oklch(0.96 0.04 155)',
     AMP:  'oklch(0.96 0.05 35)',
     UTIL: 'oklch(0.96 0.05 85)',
     SEWA: 'oklch(0.96 0.04 305)',
-  } as const)[k];
+  };
+  return map[k] ?? 'oklch(0.96 0 0)';
 }
 export function getSvcFg(k: ServiceType | null): string {
   if (!k) return 'oklch(0.45 0 0)';
-  return ({
+  const map: Record<string, string> = {
     UMUM: 'oklch(0.4 0.16 250)',
     LAB:  'oklch(0.4 0.13 155)',
     AMP:  'oklch(0.5 0.16 35)',
     UTIL: 'oklch(0.45 0.13 85)',
     SEWA: 'oklch(0.42 0.16 305)',
-  } as const)[k];
+  };
+  return map[k] ?? 'oklch(0.45 0 0)';
 }
 export function getSvcBorder(k: ServiceType | null): string {
   if (!k) return 'oklch(0.9 0 0)';
-  return ({
+  const map: Record<string, string> = {
     UMUM: 'oklch(0.9 0.05 250)',
     LAB:  'oklch(0.9 0.05 155)',
     AMP:  'oklch(0.9 0.05 35)',
     UTIL: 'oklch(0.9 0.06 85)',
     SEWA: 'oklch(0.9 0.05 305)',
-  } as const)[k];
+  };
+  return map[k] ?? 'oklch(0.9 0 0)';
 }

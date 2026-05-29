@@ -5,7 +5,7 @@ export type QueueStatus =
   | 'completed'
   | 'skipped';
 
-export type ServiceType = 'UMUM' | 'LAB' | 'AMP' | 'UTIL' | 'SEWA';
+export type ServiceType = string;
 
 export type IssueCategory =
   | 'TIDAK_ADA'

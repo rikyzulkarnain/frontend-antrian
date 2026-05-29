@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useClock } from '@/hooks/useClock';
 import { fmtTime } from '@/lib/format';
@@ -11,6 +11,7 @@ export function IdleScreen() {
   const queues = useCurrentQueues();
   const { current, index, total, advance } = useVideoPlaylist('kiosk');
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [audioOn, setAudioOn] = useState(false);
   const waitingCount = queues.filter((q) => q.status === 'waiting').length;
   const callingNow = queues.find((q) => q.status === 'calling');
 
@@ -21,6 +22,15 @@ export function IdleScreen() {
       el.play().catch(() => undefined);
     }
   }, [current?.id, current]);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    el.muted = !audioOn;
+    if (audioOn) {
+      el.play().catch(() => undefined);
+    }
+  }, [audioOn, current?.id]);
 
   return (
     <div className="screensaver">
@@ -64,24 +74,63 @@ export function IdleScreen() {
             style={{ width: 'auto', height: 'auto' }}
           />
         </div>
-        <div
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 22,
-            color: 'rgba(255,255,255,.85)',
-            letterSpacing: '0.04em',
-          }}
-        >
-          {fmtTime(clock)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setAudioOn((v) => !v);
+            }}
+            aria-label={audioOn ? 'Matikan suara' : 'Aktifkan suara'}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 16px',
+              borderRadius: 999,
+              background: audioOn ? 'rgba(243,180,25,.18)' : 'rgba(255,255,255,.1)',
+              border: `1px solid ${audioOn ? 'rgba(243,180,25,.45)' : 'rgba(255,255,255,.22)'}`,
+              backdropFilter: 'blur(12px)',
+              color: 'white',
+              fontSize: 14,
+              fontWeight: 600,
+              letterSpacing: '0.02em',
+              cursor: 'pointer',
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                display: 'inline-block',
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: audioOn ? 'var(--gold-2)' : 'rgba(255,255,255,.5)',
+                boxShadow: audioOn ? '0 0 10px var(--gold-2)' : 'none',
+              }}
+            />
+            {audioOn ? 'Suara aktif' : 'Aktifkan suara'}
+          </button>
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 22,
+              color: 'rgba(255,255,255,.85)',
+              letterSpacing: '0.04em',
+            }}
+          >
+            {fmtTime(clock)}
+          </div>
         </div>
       </div>
       <div className="vid-stage">
         {current ? (
           <video
+            key={current.id}
             ref={videoRef}
             src={current.url}
             autoPlay
-            muted
+            muted={!audioOn}
             playsInline
             onEnded={advance}
             onError={advance}
@@ -90,7 +139,7 @@ export function IdleScreen() {
               inset: 0,
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
+              objectFit: 'contain',
               background: '#06090f',
             }}
           />

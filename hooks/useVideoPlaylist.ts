@@ -21,16 +21,13 @@ export function useVideoPlaylist(target: VideoTarget): VideoPlaylist {
     let alive = true;
     const load = async () => {
       try {
-        const [forTarget, forBoth] = await Promise.all([
-          videoApi.list(target).catch(() => [] as Video[]),
-          videoApi.list('both').catch(() => [] as Video[]),
-        ]);
+        const list = await videoApi.list(target);
         if (!alive) return;
-        const merged = [...forTarget, ...forBoth]
+        const active = list
           .filter((v) => v.is_active && v.url)
           .sort((a, b) => a.display_order - b.display_order);
-        setVideos(merged);
-        setIndex((i) => (merged.length === 0 ? 0 : i % merged.length));
+        setVideos(active);
+        setIndex((i) => (active.length === 0 ? 0 : i % active.length));
       } catch {
         // ignore — fallback rendering handles empty list
       }

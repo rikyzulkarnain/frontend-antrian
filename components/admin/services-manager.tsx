@@ -11,6 +11,7 @@ export function ServicesManager() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Service | undefined>(undefined);
+  const [deletingKey, setDeletingKey] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -28,13 +29,22 @@ export function ServicesManager() {
     };
   }, []);
 
+  const openCreate = () => {
+    setEditing(undefined);
+    setModalOpen(true);
+  };
+
   const openEdit = (s: Service) => {
     setEditing(s);
     setModalOpen(true);
   };
 
-  const handleSaved = (saved: Service) => {
-    setServices((prev) => prev.map((x) => (x.key === saved.key ? saved : x)));
+  const handleSaved = (saved: Service, isNew: boolean) => {
+    if (isNew) {
+      setServices((prev) => [...prev, saved].sort((a, b) => a.display_order - b.display_order));
+    } else {
+      setServices((prev) => prev.map((x) => (x.key === saved.key ? saved : x)));
+    }
   };
 
   const toggleActive = async (s: Service) => {
@@ -47,6 +57,23 @@ export function ServicesManager() {
     }
   };
 
+  const deleteService = async (s: Service) => {
+    const confirmed = window.confirm(
+      `Hapus layanan "${s.name}" (${s.key})?\n\nLayanan tidak dapat dihapus jika masih ada riwayat antrian yang merujuk ke key ini.`,
+    );
+    if (!confirmed) return;
+    setDeletingKey(s.key);
+    try {
+      await serviceApi.delete(s.key);
+      setServices((prev) => prev.filter((x) => x.key !== s.key));
+      toastSuccess(`${s.name} dihapus.`);
+    } catch (err) {
+      toastError(err, 'Gagal menghapus layanan (mungkin masih dipakai antrian).');
+    } finally {
+      setDeletingKey(null);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 880 }}>
       <div className="panel">
@@ -54,13 +81,22 @@ export function ServicesManager() {
           <div>
             <div className="ttl">Layanan terdaftar</div>
             <div className="sub">
-              Edit nama, SOP, URL PDF, dan QR Code. Key/kode layanan tidak dapat diubah.
+              Tambah, edit, atau hapus layanan. Key/kode jadi identitas permanen — jangan
+              dihapus jika sudah ada riwayat antrian.
             </div>
           </div>
+          <button className="btn btn-primary" onClick={openCreate}>
+            + Tambah Layanan
+          </button>
         </div>
         <div className="panel-body">
           {loading && (
             <div style={{ padding: 14, color: 'var(--ink-3)', fontSize: 13 }}>Memuat…</div>
+          )}
+          {!loading && services.length === 0 && (
+            <div style={{ padding: 14, color: 'var(--ink-3)', fontSize: 13 }}>
+              Belum ada layanan. Klik "Tambah Layanan" untuk membuat.
+            </div>
           )}
           {services.map((s) => (
             <div key={s.key} className="list-row">
@@ -107,6 +143,14 @@ export function ServicesManager() {
                   onClick={() => toggleActive(s)}
                   aria-label="toggle service"
                 />
+                <button
+                  className="btn btn-danger"
+                  style={{ padding: '4px 10px', fontSize: 12 }}
+                  onClick={() => deleteService(s)}
+                  disabled={deletingKey === s.key}
+                >
+                  {deletingKey === s.key ? '…' : 'Hapus'}
+                </button>
               </div>
             </div>
           ))}
