@@ -16,6 +16,7 @@ export type AdminView =
   | 'users'
   | 'videos'
   | 'analytics'
+  | 'reports'
   | 'profile';
 
 const ROUTES: Record<AdminView, string> = {
@@ -26,6 +27,7 @@ const ROUTES: Record<AdminView, string> = {
   users: '/admin/users',
   videos: '/admin/videos',
   analytics: '/admin/analytics',
+  reports: '/admin/reports',
   profile: '/admin/profile',
 };
 
@@ -124,6 +126,12 @@ export function AdminSidebar() {
               label="Konten Video"
               active={isActive('videos')}
               count={activeVideos}
+            />
+            <NavItem
+              href={ROUTES.reports}
+              icon={Icons.reports}
+              label="Laporan"
+              active={isActive('reports')}
             />
           </>
         )}

@@ -126,6 +126,31 @@ function safeJsonParse(s: string): unknown {
   }
 }
 
+/**
+ * downloadFile fetches a binary endpoint with the bearer token and triggers a
+ * browser download. Used for exports (xlsx/pdf) where `send()` — which parses
+ * JSON — is unsuitable. Throws ApiError on non-2xx.
+ */
+export async function downloadFile(path: string, filename: string): Promise<void> {
+  const token = getAccessToken();
+  const res = await fetch(`${BASE}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    throw new ApiError(res.status, 'DOWNLOAD_FAILED', `Gagal mengunduh berkas (HTTP ${res.status})`);
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export const http = {
   get: <T>(path: string, opts: Omit<ApiOptions, 'body' | 'method'> = {}) =>
     send<T>(path, { ...opts, method: 'GET' }),

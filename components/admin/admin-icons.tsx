@@ -58,6 +58,12 @@ export const Icons = {
       <path d="M7 6.5l3.5 2-3.5 2v-4z" fill="currentColor" />
     </svg>
   ),
+  reports: (
+    <svg className="ic16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M4 2.5h5l3 3V13a.5.5 0 0 1-.5.5h-7A.5.5 0 0 1 4 13z" strokeLinejoin="round" />
+      <path d="M9 2.5V5.5h3M6 9l1.5 1.5L10 8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
   profile: (
     <svg className="ic16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
       <circle cx="8" cy="5.5" r="2.5" />

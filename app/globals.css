@@ -1003,3 +1003,51 @@ a { color: inherit; }
   display: flex;
   flex-direction: column;
 }
+
+/* ============================================================
+   Laporan (Reports) — filter inputs & print/PDF layout
+   ============================================================ */
+.report-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--ink);
+}
+.report-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+@media print {
+  /* Hide everything that is not the report itself. */
+  .no-print,
+  .admin-side,
+  .admin-head {
+    display: none !important;
+  }
+  /* Release the app shell's clipping so the report flows across pages. */
+  .live-shell,
+  .admin.screen,
+  .admin-main,
+  .admin-content {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+  .admin-content::before { display: none !important; }
+  .report-print-head { display: block !important; margin-bottom: 16px; }
+  /* Avoid splitting cards/tables awkwardly across page breaks. */
+  .panel,
+  .kpi {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid var(--line) !important;
+  }
+  @page { margin: 14mm; }
+}

@@ -12,6 +12,7 @@ const TITLES: Record<AdminView, [string, string]> = {
   users: ['Pengguna & Staff', 'Manajemen · Akses & peran'],
   videos: ['Konten Video', 'Manajemen · Playlist Kiosk & Display'],
   analytics: ['Analitik', 'Manajemen · Tren & insight'],
+  reports: ['Laporan', 'Manajemen · Rekap, SKM, & ekspor'],
   profile: ['Profil saya', 'Akun · Ubah password'],
 };
 
@@ -22,6 +23,7 @@ function viewFromPath(pathname: string): AdminView {
   if (pathname.startsWith('/admin/users')) return 'users';
   if (pathname.startsWith('/admin/videos')) return 'videos';
   if (pathname.startsWith('/admin/analytics')) return 'analytics';
+  if (pathname.startsWith('/admin/reports')) return 'reports';
   if (pathname.startsWith('/admin/profile')) return 'profile';
   return 'dashboard';
 }
