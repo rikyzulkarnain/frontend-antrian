@@ -59,10 +59,10 @@ export function VideoBackground({
     <div className="display-vid">
       {current ? (
         <video
-          key={current.id}
           ref={videoRef}
           src={current.url}
           autoPlay
+          loop={total <= 1}
           muted={!audioEnabled}
           playsInline
           onEnded={advance}
