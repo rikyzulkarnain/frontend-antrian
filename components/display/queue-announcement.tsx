@@ -52,6 +52,46 @@ export function primeTTS(): void {
   }
 }
 
+// Kata kunci nama suara wanita yang umum pada Windows / Google / Edge TTS.
+const FEMALE_HINTS = [
+  'female',
+  'wanita',
+  'perempuan',
+  'gadis',
+  'damayanti',
+  'andika', // Microsoft Andika (id-ID) bersuara wanita
+  'sri',
+  'maya',
+  'ratih',
+  'siti',
+  'dewi',
+  'ayu',
+  'zira',
+  'hazel',
+  'aria',
+  'jenny',
+  'sonia',
+  'natasha',
+];
+
+function pickFemaleVoice(): SpeechSynthesisVoice | undefined {
+  const voices = window.speechSynthesis.getVoices();
+  const idVoices = voices.filter((v) => v.lang.toLowerCase().startsWith('id'));
+  const isFemale = (v: SpeechSynthesisVoice) =>
+    FEMALE_HINTS.some((h) => v.name.toLowerCase().includes(h));
+
+  // 1) Suara Bahasa Indonesia yang teridentifikasi wanita.
+  const idFemale = idVoices.find(isFemale);
+  if (idFemale) return idFemale;
+  // 2) Suara Google Bahasa Indonesia (default-nya wanita).
+  const googleId = idVoices.find((v) => v.name.toLowerCase().includes('google'));
+  if (googleId) return googleId;
+  // 3) Suara Bahasa Indonesia apa pun.
+  if (idVoices[0]) return idVoices[0];
+  // 4) Fallback: suara wanita bahasa lain.
+  return voices.find(isFemale);
+}
+
 async function speak(text: string): Promise<void> {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
   try {
@@ -60,9 +100,10 @@ async function speak(text: string): Promise<void> {
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'id-ID';
     u.rate = 0.95;
-    const voices = window.speechSynthesis.getVoices();
-    const idVoice = voices.find((v) => v.lang.startsWith('id'));
-    if (idVoice) u.voice = idVoice;
+    u.pitch = 1.15; // sedikit lebih tinggi agar terdengar lebih jelas sebagai suara wanita
+    u.volume = 1; // panggilan nomor antrian selalu volume penuh
+    const female = pickFemaleVoice();
+    if (female) u.voice = female;
     u.onerror = (e) => console.warn('[TTS] error', e);
     window.speechSynthesis.speak(u);
   } catch (err) {

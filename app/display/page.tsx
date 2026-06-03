@@ -49,7 +49,7 @@ export default function DisplayPage() {
   return (
     <main className="live-shell">
       <div className="display screen" data-screen-label="02 Display TV">
-        <VideoBackground audioEnabled={audioActivated} showDebugControls />
+        <VideoBackground audioEnabled={audioActivated} ducked={!!banner} showDebugControls />
         <CurrentQueueBoard queues={queues} counters={counters} />
         <DisplayTicker />
         <QueueAnnouncement banner={banner} onDismiss={() => setBanner(null)} />

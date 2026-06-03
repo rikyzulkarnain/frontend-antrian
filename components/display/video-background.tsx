@@ -5,11 +5,18 @@ import { useVideoPlaylist } from '@/hooks/useVideoPlaylist';
 const PLAYBACK_RATES = [1, 2, 4, 8] as const;
 type PlaybackRate = (typeof PLAYBACK_RATES)[number];
 
+// Volume video saat ada panggilan nomor antrian (di-ducking agar suara
+// panggilan terdengar jelas) vs. volume normal.
+const DUCKED_VOLUME = 0.12;
+const NORMAL_VOLUME = 1;
+
 export function VideoBackground({
   audioEnabled = false,
+  ducked = false,
   showDebugControls = false,
 }: {
   audioEnabled?: boolean;
+  ducked?: boolean;
   showDebugControls?: boolean;
 }) {
   const { current, index, total, advance } = useVideoPlaylist('display');
@@ -34,6 +41,13 @@ export function VideoBackground({
       el.play().catch(() => undefined);
     }
   }, [audioEnabled, current?.id]);
+
+  // Ducking: kecilkan suara video selama panggilan nomor antrian diumumkan.
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    el.volume = ducked ? DUCKED_VOLUME : NORMAL_VOLUME;
+  }, [ducked, current?.id]);
 
   useEffect(() => {
     const el = videoRef.current;
