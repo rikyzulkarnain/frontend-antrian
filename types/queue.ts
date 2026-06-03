@@ -27,6 +27,9 @@ export interface QueueItem {
   respondent_name?: string | null;
   respondent_phone?: string | null;
   issue_category?: IssueCategory | null;
+  guest_name?: string | null;
+  guest_purpose?: string | null;
+  guest_token?: string | null;
   created_at: string;
   called_at: string | null;
   completed_at: string | null;

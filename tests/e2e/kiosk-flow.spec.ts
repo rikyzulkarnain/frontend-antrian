@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-// Smoke test: a visitor walks up to the kiosk, picks UMUM, accepts SOP, and
-// receives a queue ticket. This is the load-bearing flow described in
-// prd.md §7 ("Perjalanan Pengunjung") — if it works, the core happy path
-// is intact.
-test('kiosk: take a UMUM ticket end-to-end', async ({ page }) => {
+// Smoke test: a visitor walks up to the kiosk, picks UMUM, reads the SOP, and
+// reaches the intake step (QR + name/purpose form). Every service now requires
+// the visitor to register on their phone before a number is issued, so the
+// kiosk hands off to the mobile form here rather than printing a ticket
+// directly. See prd.md §7 ("Perjalanan Pengunjung").
+test('kiosk: UMUM flow reaches the intake registration step', async ({ page }) => {
   await page.goto('/kiosk');
 
   // Idle screensaver is the outer kiosk wrapper. Any click inside advances
@@ -15,18 +16,14 @@ test('kiosk: take a UMUM ticket end-to-end', async ({ page }) => {
   // Service grid uses data-key for each ServiceCard.
   await page.locator('[data-key="UMUM"]').click();
 
-  // SOP step — confirmation button reads "Ambil nomor antrian".
-  await page.getByRole('button', { name: /ambil nomor antrian/i }).click();
+  // SOP step — confirmation button now reads "Lanjut isi formulir".
+  await page.getByRole('button', { name: /lanjut isi formulir/i }).click();
 
-  // Ticket screen renders the queue number in a dedicated data-testid.
-  const ticket = page.getByTestId('ticket-number');
-  await expect(ticket).toBeVisible({ timeout: 10_000 });
-  await expect(ticket).toHaveText(/^A-\d{2,}$/);
-
-  // The "Antrian di depan" cell starts as "—" until the count fetch
-  // resolves, then becomes a number. Either is acceptable; just confirm
-  // the layout is present.
-  await expect(page.getByText(/antrian di depan/i)).toBeVisible();
+  // Intake step shows the registration QR and instructions. The visitor would
+  // scan this and complete name + purpose on their phone; the kiosk then picks
+  // up the issued number by polling.
+  await expect(page.getByText(/isi formulir/i).first()).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText(/pindai qr/i)).toBeVisible();
 });
 
 test('kiosk: cancel from SOP returns to service selector', async ({ page }) => {

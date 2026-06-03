@@ -9,9 +9,15 @@ interface SOPViewerProps {
   svc: Service;
   onConfirm: () => void;
   onBack: () => void;
+  /**
+   * Buku Tamu mode: the confirm button advances to the guest-registration QR
+   * step instead of issuing a number directly. The service's portal QR is
+   * hidden here to avoid clashing with the registration QR on the next step.
+   */
+  guestMode?: boolean;
 }
 
-export function SOPViewer({ svc, onConfirm, onBack }: SOPViewerProps) {
+export function SOPViewer({ svc, onConfirm, onBack, guestMode = false }: SOPViewerProps) {
   const clock = useClock();
   const bg = svc.color_bg ?? getSvcBg(svc.key);
   const fg = svc.color_fg ?? getSvcFg(svc.key);
@@ -60,7 +66,7 @@ export function SOPViewer({ svc, onConfirm, onBack }: SOPViewerProps) {
             </div>
           ))}
         </div>
-        {(svc.sop_pdf_url || svc.qr_url) && (
+        {(svc.sop_pdf_url || (svc.qr_url && !guestMode)) && (
           <div
             className="sop-extras"
             style={{ display: 'flex', gap: 16, marginTop: 16, alignItems: 'flex-start' }}
@@ -76,7 +82,7 @@ export function SOPViewer({ svc, onConfirm, onBack }: SOPViewerProps) {
                 Lihat SOP lengkap (PDF) →
               </a>
             )}
-            {svc.qr_url && (
+            {svc.qr_url && !guestMode && (
               <div style={{ textAlign: 'center' }}>
                 <QRCodeSVG value={svc.qr_url} size={132} />
                 <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 6 }}>
@@ -98,8 +104,9 @@ export function SOPViewer({ svc, onConfirm, onBack }: SOPViewerProps) {
             <path d="M12 8v5M12 16h.01M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" strokeLinecap="round" />
           </svg>
           <span>
-            Dengan menekan tombol di bawah, Anda menyatakan telah membaca dan memahami SOP layanan
-            ini.
+            {guestMode
+              ? 'Nomor antrian diterbitkan setelah Anda mengisi formulir kunjungan (nama & keperluan) lewat QR di langkah berikutnya.'
+              : 'Dengan menekan tombol di bawah, Anda menyatakan telah membaca dan memahami SOP layanan ini.'}
           </span>
         </div>
       </div>
@@ -109,7 +116,7 @@ export function SOPViewer({ svc, onConfirm, onBack }: SOPViewerProps) {
             ← Pilih layanan lain
           </button>
           <button className="kiosk-cta kiosk-cta-primary" onClick={onConfirm}>
-            Ambil nomor antrian
+            {guestMode ? 'Lanjut isi formulir' : 'Ambil nomor antrian'}
             <svg
               width="32"
               height="32"

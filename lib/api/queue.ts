@@ -31,6 +31,26 @@ export const queueApi = {
     return http.post<QueueItem>('/queues', { service_type: serviceType });
   },
 
+  /** Submit the visitor's name + purpose to issue a ticket for the given service. */
+  createGuest(input: {
+    serviceType: ServiceType;
+    token: string;
+    name: string;
+    purpose: string;
+  }): Promise<QueueItem> {
+    return http.post<QueueItem>('/queues/guest', {
+      service_type: input.serviceType,
+      token: input.token,
+      name: input.name,
+      purpose: input.purpose,
+    });
+  },
+
+  /** Poll for the ticket assigned to an intake session token. Rejects with a 404 ApiError until the visitor submits the form. */
+  getGuest(token: string): Promise<QueueItem> {
+    return http.get<QueueItem>(`/queues/guest/${encodeURIComponent(token)}`);
+  },
+
   call(input: { counter_id: number; service_type?: ServiceType }): Promise<QueueItem> {
     return http.post<QueueItem>('/queues/call', input);
   },

@@ -45,6 +45,17 @@ describe('SOPViewer', () => {
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 
+  it('in guestMode the CTA advances to the intake form instead of issuing a number', async () => {
+    const user = userEvent.setup();
+    const onConfirm = vi.fn();
+    render(<SOPViewer svc={umum} guestMode onConfirm={onConfirm} onBack={vi.fn()} />);
+
+    // Direct "ambil nomor antrian" is replaced by the registration CTA.
+    expect(screen.queryByRole('button', { name: /ambil nomor antrian/i })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /lanjut isi formulir/i }));
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
   it('renders distinct glyphs across service types', () => {
     // Sanity: rendering a different service should show that service's name.
     const lab = SERVICES.find((s) => s.key === 'LAB')!;

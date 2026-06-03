@@ -63,7 +63,10 @@ export function SKMView({ ticket, svc, counter, alreadyRated }: SKMViewProps) {
   const [rating, setRating] = useState(0);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [comment, setComment] = useState('');
-  const [respondentName, setRespondentName] = useState('');
+  // Reuse the name the visitor already entered on the intake form so they don't
+  // type it twice. Both live on the same ticket row, so the survey response is
+  // inherently tied to that identity.
+  const [respondentName, setRespondentName] = useState(ticket.guest_name ?? '');
   const [respondentPhone, setRespondentPhone] = useState('');
   const [issueCategory, setIssueCategory] = useState<CategoryKey | ''>('');
   const [formError, setFormError] = useState<string | null>(null);
@@ -288,6 +291,11 @@ export function SKMView({ ticket, svc, counter, alreadyRated }: SKMViewProps) {
 
         <div className="m-section">
           <div className="h">Identitas (opsional)</div>
+          {ticket.guest_name && (
+            <p style={{ fontSize: 11.5, color: 'var(--ink-3)', marginBottom: 6 }}>
+              Nama diambil dari formulir kunjungan Anda — ubah bila perlu.
+            </p>
+          )}
           <input
             type="text"
             placeholder="Nama lengkap"

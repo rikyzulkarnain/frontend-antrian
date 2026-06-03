@@ -10,6 +10,7 @@ import {
 } from '@/components/display/queue-announcement';
 import { useCurrentQueues } from '@/hooks/useCurrentQueues';
 import { useQueueEvents } from '@/hooks/useQueueEvents';
+import { useAutoFullscreen } from '@/hooks/useAutoFullscreen';
 import { counterApi } from '@/lib/api/counter';
 import { COUNTERS, type Counter } from '@/lib/constants';
 
@@ -18,6 +19,8 @@ export default function DisplayPage() {
   const [counters, setCounters] = useState<Counter[]>(COUNTERS);
   const [banner, setBanner] = useState<CallBanner | null>(null);
   const [audioActivated, setAudioActivated] = useState(false);
+
+  useAutoFullscreen();
 
   useEffect(() => {
     let alive = true;

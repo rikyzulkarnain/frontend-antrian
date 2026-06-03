@@ -64,8 +64,8 @@ export function ServiceSelector({ services, onPick, onCancel }: ServiceSelectorP
           Anda butuhkan hari ini?
         </h1>
         <p>
-          Ketuk salah satu kategori di bawah. Anda akan diberi pilihan: baca SOP terlebih dahulu
-          atau langsung mengambil nomor antrian.
+          Ketuk salah satu kategori di bawah. Anda akan membaca SOP, lalu mengisi formulir singkat
+          (nama &amp; keperluan) lewat QR di HP sebelum nomor antrian terbit.
         </p>
       </div>
       <div className="kiosk-body">

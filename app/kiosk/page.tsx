@@ -2,17 +2,19 @@
 import { useEffect, useState } from 'react';
 import { IdleScreen } from '@/components/kiosk/idle-screen';
 import { ServiceSelector } from '@/components/kiosk/service-selector';
-import { ServiceChoice } from '@/components/kiosk/service-choice';
 import { SOPViewer } from '@/components/kiosk/sop-viewer';
+import { GuestWait } from '@/components/kiosk/guest-wait';
 import { TicketDisplay } from '@/components/kiosk/ticket-display';
 import { SERVICES, type Service } from '@/lib/constants';
+import { useAutoFullscreen } from '@/hooks/useAutoFullscreen';
 import { serviceApi } from '@/lib/api/service';
-import { queueApi } from '@/lib/api/queue';
 import { toastError } from '@/lib/toast';
 import type { QueueItem } from '@/types/queue';
 import type { Service as ApiService } from '@/types/service';
 
-type Step = 'idle' | 'select' | 'choice' | 'sop' | 'ticket';
+// Every service follows the same flow: read the SOP, then register name +
+// purpose via the QR form on the visitor's phone before a number is issued.
+type Step = 'idle' | 'select' | 'sop' | 'guest' | 'ticket';
 
 const TICKET_AUTO_RESET_MS = 18000;
 const SERVICES_REFRESH_MS = 5 * 60 * 1000; // 5 menit
@@ -40,26 +42,13 @@ export default function KioskPage() {
   const [services, setServices] = useState<Service[]>(SERVICES);
   const [service, setService] = useState<Service | null>(null);
   const [ticket, setTicket] = useState<QueueItem | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+
+  useAutoFullscreen();
 
   const reset = () => {
     setStep('idle');
     setService(null);
     setTicket(null);
-  };
-
-  const handleConfirm = async (svc: Service) => {
-    if (submitting) return;
-    setSubmitting(true);
-    try {
-      const created = await queueApi.create(svc.key);
-      setTicket(created);
-      setStep('ticket');
-    } catch (err) {
-      toastError(err, 'Gagal mengambil nomor antrian. Coba lagi.');
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   useEffect(() => {
@@ -105,24 +94,27 @@ export default function KioskPage() {
             services={services}
             onPick={(svc) => {
               setService(svc);
-              setStep('choice');
+              setStep('sop');
             }}
             onCancel={reset}
-          />
-        )}
-        {step === 'choice' && service && (
-          <ServiceChoice
-            svc={service}
-            onPickSOP={() => setStep('sop')}
-            onPickDirect={() => handleConfirm(service)}
-            onBack={() => setStep('select')}
           />
         )}
         {step === 'sop' && service && (
           <SOPViewer
             svc={service}
-            onConfirm={() => handleConfirm(service)}
-            onBack={() => setStep('choice')}
+            guestMode
+            onConfirm={() => setStep('guest')}
+            onBack={() => setStep('select')}
+          />
+        )}
+        {step === 'guest' && service && (
+          <GuestWait
+            svc={service}
+            onTicket={(t) => {
+              setTicket(t);
+              setStep('ticket');
+            }}
+            onBack={() => setStep('sop')}
           />
         )}
         {step === 'ticket' && ticket && service && (

@@ -4,7 +4,7 @@ const screens = [
   { href: '/kiosk', label: 'Kiosk', sub: '1080 × 1920 · touchscreen layanan' },
   { href: '/display', label: 'Display TV', sub: '1920 × 1080 · layar antrian' },
   { href: '/admin', label: 'Admin & Staff', sub: '1440 × 900 · panel operator' },
-  { href: '/m/demo', label: 'Mobile pengunjung', sub: '390 × 844 · QR scan' },
+  { href: '/m/enter', label: 'Mobile pengunjung', sub: '390 × 844 · QR scan' },
 ];
 
 export default function Home() {
@@ -37,9 +37,9 @@ export default function Home() {
         ))}
       </nav>
 
-      <footer className="font-mono text-xs text-ink-3">
+      {/* <footer className="font-mono text-xs text-ink-3">
         v0.1 · placeholder · workflow 02 selesai
-      </footer>
+      </footer> */}
     </main>
   );
 }
