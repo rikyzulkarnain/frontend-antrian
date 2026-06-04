@@ -200,22 +200,30 @@ function playAudioUrl(url: string): Promise<void> {
 }
 
 // Fallback: suara browser (Web Speech) bila TTS cloud tidak tersedia.
-function speakViaWebSpeech(text: string): void {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-  try {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'id-ID';
-    u.rate = 0.86; // tempo tenang & jelas seperti pengumuman bandara
-    u.pitch = 1.05; // suara wanita yang natural, tidak melengking
-    u.volume = 1;
-    const female = pickFemaleVoice();
-    if (female) u.voice = female;
-    u.onerror = (e) => console.warn('[TTS] web-speech error', e);
-    window.speechSynthesis.speak(u);
-  } catch (err) {
-    console.warn('[TTS] web-speech failed', err);
-  }
+// Resolve saat ucapan selesai agar pemanggil bisa menutup banner tepat waktu.
+function speakViaWebSpeech(text: string): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return resolve();
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'id-ID';
+      u.rate = 0.86; // tempo tenang & jelas seperti pengumuman bandara
+      u.pitch = 1.05; // suara wanita yang natural, tidak melengking
+      u.volume = 1;
+      const female = pickFemaleVoice();
+      if (female) u.voice = female;
+      u.onend = () => resolve();
+      u.onerror = (e) => {
+        console.warn('[TTS] web-speech error', e);
+        resolve();
+      };
+      window.speechSynthesis.speak(u);
+    } catch (err) {
+      console.warn('[TTS] web-speech failed', err);
+      resolve();
+    }
+  });
 }
 
 async function speak(text: string): Promise<void> {
@@ -231,29 +239,44 @@ async function speak(text: string): Promise<void> {
     const url = await audioPromise;
 
     if (url) {
-      await playAudioUrl(url); // suara wanita natural dari ElevenLabs
+      await playAudioUrl(url); // suara wanita natural dari cloud TTS
     } else {
-      speakViaWebSpeech(text); // fallback suara browser
+      await speakViaWebSpeech(text); // fallback suara browser
     }
   } catch (err) {
     console.warn('[TTS] failed', err);
-    speakViaWebSpeech(text);
+    await speakViaWebSpeech(text);
   }
 }
 
 export function QueueAnnouncement({ banner, onDismiss }: QueueAnnouncementProps) {
-  const lastTs = useRef<number | null>(null);
+  // Simpan onDismiss di ref agar perubahan identitasnya (DisplayPage sering
+  // re-render) tidak memicu ulang effect & membatalkan timer penutupan banner.
+  const onDismissRef = useRef(onDismiss);
+  useEffect(() => {
+    onDismissRef.current = onDismiss;
+  }, [onDismiss]);
 
+  // Jalankan sekali per panggilan (dibedakan oleh banner.ts): umumkan suara,
+  // lalu tutup banner tepat saat suara selesai. Safety timeout berjaga-jaga
+  // bila pemutaran audio menggantung.
   useEffect(() => {
     if (!banner) return;
-    if (lastTs.current === banner.ts) return;
-    lastTs.current = banner.ts;
+    let done = false;
+    const dismiss = () => {
+      if (done) return;
+      done = true;
+      onDismissRef.current();
+    };
     void speak(
       `Nomor ${banner.queue_number.replace('-', ' ')}, silakan menuju ${banner.counter_name}`,
-    );
-    const t = setTimeout(onDismiss, AUTO_DISMISS_MS);
-    return () => clearTimeout(t);
-  }, [banner, onDismiss]);
+    ).finally(dismiss);
+    const t = setTimeout(dismiss, AUTO_DISMISS_MS);
+    return () => {
+      done = true; // jangan tutup panggilan berikutnya dari closure lama
+      clearTimeout(t);
+    };
+  }, [banner?.ts]);
 
   if (!banner) return null;
 
