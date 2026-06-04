@@ -16,7 +16,7 @@ REM ============================================================
 setlocal
 
 REM --- GANTI alamat ini bila frontend tidak di PC ini / beda port ---
-set "URL=http://localhost:3000/display"
+set "URL=https://frontend-antrian.vercel.app/display"
 
 REM --- Profil browser khusus agar kiosk bersih (tanpa prompt restore tab) ---
 set "PROFILE=%LOCALAPPDATA%\AntrianDisplayProfile"
