@@ -15,6 +15,8 @@ interface SKMViewProps {
   alreadyRated?: boolean;
 }
 
+const GOMUSI_URL = 'https://binamarga.pu.go.id/balai-sumsel/gomusi_app';
+
 const TAGS = ['Petugas ramah', 'Cepat dilayani', 'Ruangan bersih', 'SOP jelas', 'Antrian rapi'];
 const RATING_LABELS = ['Buruk', 'Kurang', 'Cukup', 'Baik', 'Sangat baik'];
 
@@ -163,6 +165,27 @@ export function SKMView({ ticket, svc, counter, alreadyRated }: SKMViewProps) {
           Penilaian Anda untuk layanan <b>{svc?.name}</b> sudah kami terima dan diteruskan ke tim
           terkait.
         </p>
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 320, marginTop: 8 }}
+        >
+          <a
+            href={GOMUSI_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary"
+            style={{ padding: 14, fontSize: 14, textDecoration: 'none', textAlign: 'center' }}
+          >
+            Lanjut ke Go-Musi 2.0
+          </a>
+          <button
+            type="button"
+            className="btn"
+            style={{ padding: 14, fontSize: 14 }}
+            onClick={() => window.close()}
+          >
+            Selesai
+          </button>
+        </div>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink-3)', marginTop: 14 }}>
           Tiket {ticket.queue_number} · {fmtTime(new Date())}
         </div>

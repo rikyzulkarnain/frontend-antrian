@@ -18,8 +18,6 @@ const IntakeSchema = z.object({
   purpose: z.string().trim().min(1, 'Keperluan wajib diisi').max(300),
 });
 
-const GOMUSI_URL = 'https://binamarga.pu.go.id/balai-sumsel/gomusi_app';
-
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '12px 12px',
@@ -131,26 +129,13 @@ export function IntakeForm({ token, serviceKey, serviceName }: IntakeFormProps) 
             Terima kasih{ticket.guest_name ? `, ${ticket.guest_name}` : ''}. Silakan tunggu panggilan
             dan menuju loket sesuai layar saat nomor Anda dipanggil.
           </p>
-          <div
-            style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 320, marginTop: 8 }}
+          <a
+            href={`/m/${ticket.id}`}
+            className="btn btn-primary"
+            style={{ padding: 14, fontSize: 14, marginTop: 8, textDecoration: 'none' }}
           >
-            <a
-              href={GOMUSI_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-primary"
-              style={{ padding: 14, fontSize: 14, textDecoration: 'none', textAlign: 'center' }}
-            >
-              Lanjut ke Go-Musi 2.0
-            </a>
-            <a
-              href={`/m/${ticket.id}`}
-              className="btn"
-              style={{ padding: 14, fontSize: 14, textDecoration: 'none', textAlign: 'center' }}
-            >
-              Selesai
-            </a>
-          </div>
+            Pantau status antrian
+          </a>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink-3)', marginTop: 8 }}>
             {fmtTime(new Date())}
           </div>
