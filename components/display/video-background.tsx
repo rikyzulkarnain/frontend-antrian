@@ -40,6 +40,29 @@ export function VideoBackground({
     playWithMutedFallback(el);
   }, [audioEnabled, current?.id]);
 
+  // Jika autoplay bersuara diblokir browser (video terlanjur bisu), nyalakan
+  // suara begitu ada interaksi pertama apa pun (sentuh layar / keyboard /
+  // remote). Saat flag --autoplay-policy aktif, video sudah bersuara sejak awal
+  // dan listener ini tidak terpakai.
+  useEffect(() => {
+    if (!audioEnabled) return;
+    const unmute = () => {
+      const el = videoRef.current;
+      if (!el) return;
+      el.muted = false;
+      el.play().catch(() => undefined);
+    };
+    const opts = { passive: true } as const;
+    window.addEventListener('pointerdown', unmute, opts);
+    window.addEventListener('keydown', unmute, opts);
+    window.addEventListener('touchstart', unmute, opts);
+    return () => {
+      window.removeEventListener('pointerdown', unmute);
+      window.removeEventListener('keydown', unmute);
+      window.removeEventListener('touchstart', unmute);
+    };
+  }, [audioEnabled]);
+
   // Ducking: kecilkan suara video selama panggilan nomor antrian diumumkan.
   useEffect(() => {
     const el = videoRef.current;
