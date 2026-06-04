@@ -15,22 +15,30 @@ export function IdleScreen() {
   const waitingCount = queues.filter((q) => q.status === 'waiting').length;
   const callingNow = queues.find((q) => q.status === 'calling');
 
+  // Simpan audioOn di ref agar effect pemuatan video tak ikut bergantung
+  // padanya (mencegah video ter-restart saat suara di-toggle).
+  const audioOnRef = useRef(audioOn);
+  useEffect(() => {
+    audioOnRef.current = audioOn;
+  }, [audioOn]);
+
+  // Saat video aktif berganti: muat sumber baru. Pemutaran ditangani oleh
+  // onLoadedData (lihat <video>) agar video berikutnya diputar otomatis begitu
+  // datanya siap, tanpa perlu interaksi.
   useEffect(() => {
     const el = videoRef.current;
-    if (el && current) {
-      el.load();
-      el.play().catch(() => undefined);
-    }
-  }, [current?.id, current]);
+    if (!el || !current) return;
+    el.muted = !audioOnRef.current;
+    el.load();
+  }, [current?.id]);
 
+  // Terapkan status mute saat suara di-toggle, tanpa me-reload video.
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
     el.muted = !audioOn;
-    if (audioOn) {
-      el.play().catch(() => undefined);
-    }
-  }, [audioOn, current?.id]);
+    if (audioOn) playVideoWithMutedFallback(el);
+  }, [audioOn]);
 
   return (
     <div className="screensaver">
@@ -132,6 +140,7 @@ export function IdleScreen() {
             loop={total <= 1}
             muted={!audioOn}
             playsInline
+            onLoadedData={(e) => playVideoWithMutedFallback(e.currentTarget)}
             onEnded={advance}
             onError={advance}
             style={{
@@ -224,4 +233,15 @@ export function IdleScreen() {
       </div>
     </div>
   );
+}
+
+// Putar video; bila autoplay bersuara diblokir, jatuh ke mode bisu agar video
+// tetap berjalan & berlanjut ke video berikutnya tanpa interaksi. Guard !paused
+// mencegah pemanggilan play() ganda yang saling interupsi.
+function playVideoWithMutedFallback(el: HTMLVideoElement | null): void {
+  if (!el || !el.paused) return;
+  el.play().catch(() => {
+    el.muted = true;
+    el.play().catch(() => undefined);
+  });
 }

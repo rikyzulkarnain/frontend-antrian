@@ -24,21 +24,32 @@ export function VideoBackground({
   const [progress, setProgress] = useState({ played: 0, duration: 0 });
   const [rate, setRate] = useState<PlaybackRate>(1);
 
+  // Simpan audioEnabled di ref agar effect pemuatan video tidak ikut bergantung
+  // padanya (mencegah video ter-restart saat suara di-toggle).
+  const audioEnabledRef = useRef(audioEnabled);
   useEffect(() => {
-    setProgress({ played: 0, duration: 0 });
-    const el = videoRef.current;
-    if (el && current) {
-      el.load();
-      playWithMutedFallback(el);
-    }
-  }, [current?.id, current]);
+    audioEnabledRef.current = audioEnabled;
+  }, [audioEnabled]);
 
+  // Saat video aktif berganti: muat sumber baru. Pemutaran ditangani oleh
+  // onLoadedData (lihat <video>) agar andal — autoplay tidak terpicu ulang
+  // ketika src berubah tanpa remount, jadi video berikutnya harus diputar
+  // secara eksplisit begitu datanya siap, tanpa perlu interaksi.
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el || !current) return;
+    setProgress({ played: 0, duration: 0 });
+    el.muted = !audioEnabledRef.current;
+    el.load();
+  }, [current?.id]);
+
+  // Terapkan status mute saat suara di-toggle, tanpa me-reload video.
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
     el.muted = !audioEnabled;
-    playWithMutedFallback(el);
-  }, [audioEnabled, current?.id]);
+    if (audioEnabled) playWithMutedFallback(el);
+  }, [audioEnabled]);
 
   // Jika autoplay bersuara diblokir browser (video terlanjur bisu), nyalakan
   // suara begitu ada interaksi pertama apa pun (sentuh layar / keyboard /
@@ -86,6 +97,7 @@ export function VideoBackground({
           loop={total <= 1}
           muted={!audioEnabled}
           playsInline
+          onLoadedData={(e) => playWithMutedFallback(e.currentTarget)}
           onEnded={advance}
           onTimeUpdate={(e) => {
             const v = e.currentTarget;
@@ -230,8 +242,10 @@ export function VideoBackground({
 
 // playWithMutedFallback mencoba memutar video; bila autoplay bersuara diblokir
 // browser (display tanpa interaksi), jatuh ke mode bisu agar video tetap jalan.
-// Suara menyala setelah ada gesture / flag autoplay browser.
-function playWithMutedFallback(el: HTMLVideoElement): void {
+// Suara menyala setelah ada gesture / flag autoplay browser. Guard !paused
+// mencegah pemanggilan play() ganda yang saling interupsi (AbortError).
+function playWithMutedFallback(el: HTMLVideoElement | null): void {
+  if (!el || !el.paused) return;
   el.play().catch(() => {
     el.muted = true;
     el.play().catch(() => undefined);
