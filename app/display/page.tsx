@@ -18,9 +18,31 @@ export default function DisplayPage() {
   const queues = useCurrentQueues();
   const [counters, setCounters] = useState<Counter[]>(COUNTERS);
   const [banner, setBanner] = useState<CallBanner | null>(null);
-  const [audioActivated, setAudioActivated] = useState(false);
+  // Display TV biasanya tanpa mouse: suara langsung aktif. Agar benar-benar
+  // jalan tanpa interaksi, jalankan browser dengan flag autoplay (lihat README).
+  const [audioActivated, setAudioActivated] = useState(true);
 
   useAutoFullscreen();
+
+  // Prime TTS/AudioContext saat load, lalu prime ulang pada interaksi pertama
+  // apa pun (sentuh layar, keyboard, remote) sebagai cadangan bila browser
+  // memblokir audio tanpa gesture.
+  useEffect(() => {
+    primeTTS();
+    const activate = () => {
+      primeTTS();
+      setAudioActivated(true);
+    };
+    const opts = { passive: true } as const;
+    window.addEventListener('pointerdown', activate, opts);
+    window.addEventListener('keydown', activate, opts);
+    window.addEventListener('touchstart', activate, opts);
+    return () => {
+      window.removeEventListener('pointerdown', activate);
+      window.removeEventListener('keydown', activate);
+      window.removeEventListener('touchstart', activate);
+    };
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -53,18 +75,6 @@ export default function DisplayPage() {
         <CurrentQueueBoard queues={queues} counters={counters} />
         <DisplayTicker />
         <QueueAnnouncement banner={banner} onDismiss={() => setBanner(null)} />
-        {!audioActivated && (
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              primeTTS();
-              setAudioActivated(true);
-            }}
-            style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 100 }}
-          >
-            Aktifkan suara video & pengumuman
-          </button>
-        )}
       </div>
     </main>
   );

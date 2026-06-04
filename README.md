@@ -1,5 +1,28 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Layar Display TV (PC tanpa mouse/keyboard)
+
+Halaman `/display` mengaktifkan **suara video + pengumuman antrian secara
+otomatis** tanpa perlu klik tombol. Namun, browser modern memblokir pemutaran
+audio tanpa interaksi pengguna. Agar suara benar-benar jalan pada PC display
+yang tidak ada input sama sekali, **jalankan browser dengan flag autoplay**:
+
+**Microsoft Edge (disarankan — suara wanita neural id-ID tersedia):**
+```
+msedge.exe --kiosk "http://<host>:3000/display" --edge-kiosk-type=fullscreen ^
+  --autoplay-policy=no-user-gesture-required
+```
+
+**Google Chrome:**
+```
+chrome.exe --kiosk "http://<host>:3000/display" ^
+  --autoplay-policy=no-user-gesture-required
+```
+
+Tanpa flag ini, suara baru aktif setelah ada interaksi pertama (sentuh layar /
+tekan tombol keyboard / remote) — video tetap diputar (otomatis bisu sebagai
+cadangan) walau flag belum dipasang.
+
 ## Getting Started
 
 First, run the development server:

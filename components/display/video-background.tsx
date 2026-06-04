@@ -29,7 +29,7 @@ export function VideoBackground({
     const el = videoRef.current;
     if (el && current) {
       el.load();
-      el.play().catch(() => undefined);
+      playWithMutedFallback(el);
     }
   }, [current?.id, current]);
 
@@ -37,9 +37,7 @@ export function VideoBackground({
     const el = videoRef.current;
     if (!el) return;
     el.muted = !audioEnabled;
-    if (audioEnabled) {
-      el.play().catch(() => undefined);
-    }
+    playWithMutedFallback(el);
   }, [audioEnabled, current?.id]);
 
   // Ducking: kecilkan suara video selama panggilan nomor antrian diumumkan.
@@ -205,6 +203,16 @@ export function VideoBackground({
       )}
     </div>
   );
+}
+
+// playWithMutedFallback mencoba memutar video; bila autoplay bersuara diblokir
+// browser (display tanpa interaksi), jatuh ke mode bisu agar video tetap jalan.
+// Suara menyala setelah ada gesture / flag autoplay browser.
+function playWithMutedFallback(el: HTMLVideoElement): void {
+  el.play().catch(() => {
+    el.muted = true;
+    el.play().catch(() => undefined);
+  });
 }
 
 function fmtClock(seconds: number): string {
