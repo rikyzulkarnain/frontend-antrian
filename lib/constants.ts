@@ -29,6 +29,9 @@ export interface Counter {
   service: ServiceType | null;
   active: boolean;
   staff: string | null;
+  // Assigned operator's user id. Lets the staff panel lock an operator to
+  // their own counter. Null/undefined when no operator is assigned.
+  staff_id?: string | null;
 }
 
 export interface VideoItem {

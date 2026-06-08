@@ -7,6 +7,7 @@ import { counterApi } from '@/lib/api/counter';
 import { queueApi } from '@/lib/api/queue';
 import { ApiError } from '@/lib/api';
 import { toastError, toastSuccess } from '@/lib/toast';
+import { useAuthStore } from '@/stores/authStore';
 import { COUNTERS, SERVICES, type Counter } from '@/lib/constants';
 import type { QueueItem, ServiceType } from '@/types/queue';
 import { Icons } from './admin-icons';
@@ -49,6 +50,8 @@ function MiniStat({ lbl, val, sub }: MiniStatProps) {
 }
 
 export function QueueOperationsPanel() {
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === 'admin';
   const [counterId, setCounterId] = useState<number>(1);
   const [counters, setCounters] = useState<Counter[]>(COUNTERS);
   const [history, setHistory] = useState<QueueItem[]>([]);
@@ -56,6 +59,21 @@ export function QueueOperationsPanel() {
   const [serviceFilter, setServiceFilter] = useState<ServiceType | ''>('');
   const queues = useCurrentQueues();
   const now = useClock(60000).getTime();
+
+  // Loket (staff) users may only operate the counter assigned to them. Admins
+  // may operate any active counter. Mirrors the backend ownership check on
+  // POST /queues/call — the panel just keeps the UX honest.
+  const myCounters = isAdmin
+    ? counters.filter((c) => c.active)
+    : counters.filter((c) => c.active && c.staff_id === user?.id);
+
+  // Keep the selected counter within the allowed set. For staff this auto-locks
+  // onto their assigned counter once the live counter list loads.
+  useEffect(() => {
+    if (myCounters.length && !myCounters.some((c) => c.id === counterId)) {
+      setCounterId(myCounters[0].id);
+    }
+  }, [myCounters, counterId]);
 
   useEffect(() => {
     let alive = true;
@@ -92,6 +110,8 @@ export function QueueOperationsPanel() {
   });
 
   const counter = counters.find((c) => c.id === counterId);
+  // True only when the selected counter is one the current user may operate.
+  const canOperate = myCounters.some((c) => c.id === counterId);
   const cur = queues.find(
     (q) => q.counter_id === counterId && (q.status === 'serving' || q.status === 'calling'),
   );
@@ -148,9 +168,10 @@ export function QueueOperationsPanel() {
         <div className="card" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <span className="h-eyebrow">Bertugas di</span>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {counters
-              .filter((c) => c.active)
-              .map((c) => (
+            {myCounters.length ? (
+              // Admin sees every active counter; staff sees only the counter(s)
+              // assigned to them. Either way they can only pick from this set.
+              myCounters.map((c) => (
                 <button
                   key={c.id}
                   className={cn('btn', c.id === counterId && 'btn-primary')}
@@ -159,7 +180,14 @@ export function QueueOperationsPanel() {
                 >
                   {c.name}{c.service ? ` · ${c.service}` : ''}
                 </button>
-              ))}
+              ))
+            ) : (
+              <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>
+                {isAdmin
+                  ? 'Belum ada loket aktif.'
+                  : 'Belum ada loket yang ditugaskan untuk Anda. Hubungi admin.'}
+              </span>
+            )}
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span className="h-eyebrow">Filter layanan</span>
@@ -209,7 +237,7 @@ export function QueueOperationsPanel() {
           <div className="staff-actions">
             <button
               className="btn btn-primary"
-              disabled={busy || !waiters.length}
+              disabled={busy || !waiters.length || !canOperate}
               onClick={callNext}
             >
               {Icons.bell} Panggil berikutnya

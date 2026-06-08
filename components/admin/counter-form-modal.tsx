@@ -19,7 +19,7 @@ export function CounterFormModal({ open, onClose, initial, onSaved }: Props) {
   const isEdit = !!initial;
   const [name, setName] = useState('');
   const [service, setService] = useState<ServiceType | ''>('');
-  const [staff, setStaff] = useState<string>('');
+  const [staffId, setStaffId] = useState<string>('');
   const [active, setActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [staffOptions, setStaffOptions] = useState<User[]>([]);
@@ -28,7 +28,7 @@ export function CounterFormModal({ open, onClose, initial, onSaved }: Props) {
     if (!open) return;
     setName(initial?.name ?? '');
     setService((initial?.service ?? '') as ServiceType | '');
-    setStaff(initial?.staff ?? '');
+    setStaffId(initial?.staff_id ?? '');
     setActive(initial?.active ?? true);
   }, [open, initial]);
 
@@ -56,7 +56,7 @@ export function CounterFormModal({ open, onClose, initial, onSaved }: Props) {
       const payload = {
         name,
         service: (service || null) as Counter['service'],
-        staff: staff || null,
+        staff_id: staffId || null,
         active,
       };
       const saved = isEdit
@@ -121,15 +121,15 @@ export function CounterFormModal({ open, onClose, initial, onSaved }: Props) {
           </select>
         </Field>
         <Field label="Staff">
-          <select value={staff} onChange={(e) => setStaff(e.target.value)}>
+          <select value={staffId} onChange={(e) => setStaffId(e.target.value)}>
             <option value="">Belum ditetapkan</option>
             {staffOptions.map((u) => (
-              <option key={u.id} value={u.name}>
+              <option key={u.id} value={u.id}>
                 {u.name}
               </option>
             ))}
-            {staff && !staffOptions.some((u) => u.name === staff) && (
-              <option value={staff}>{staff}</option>
+            {staffId && !staffOptions.some((u) => u.id === staffId) && (
+              <option value={staffId}>{initial?.staff ?? staffId}</option>
             )}
           </select>
         </Field>

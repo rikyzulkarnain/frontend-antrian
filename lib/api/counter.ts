@@ -5,7 +5,9 @@ export interface CounterInput {
   name: string;
   service: Counter['service'];
   active: boolean;
-  staff?: string | null;
+  // Assigned operator's user id (UUID), or null to unassign. The backend keys
+  // counter ownership on this, not the display name.
+  staff_id?: string | null;
 }
 
 export const counterApi = {
