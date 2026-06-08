@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { VideoBackground } from '@/components/display/video-background';
 import { CurrentQueueBoard } from '@/components/display/current-queue-board';
 import { DisplayTicker } from '@/components/display/ticker';
@@ -44,6 +44,12 @@ export default function DisplayPage() {
     };
   }, []);
 
+  // Keep the latest counters in a ref so the (once-bound) SSE handler below
+  // always resolves the current loket name, not the COUNTERS fallback captured
+  // on first render.
+  const countersRef = useRef(counters);
+  countersRef.current = counters;
+
   useEffect(() => {
     let alive = true;
     counterApi
@@ -59,7 +65,7 @@ export default function DisplayPage() {
 
   useQueueEvents({
     onCalled: (q) => {
-      const counter = counters.find((c) => c.id === q.counter_id);
+      const counter = countersRef.current.find((c) => c.id === q.counter_id);
       setBanner({
         queue_number: q.queue_number,
         counter_name: counter?.name ?? 'Loket',

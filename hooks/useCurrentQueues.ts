@@ -12,16 +12,23 @@ export function useCurrentQueues(): QueueItem[] {
 
   useEffect(() => {
     let alive = true;
-    queueApi
-      .current()
-      .then((data) => {
-        if (alive) setQueues(data);
-      })
-      .catch((err) => {
-        console.error('useCurrentQueues: fetch failed', err);
-      });
+    const load = () =>
+      queueApi
+        .current()
+        .then((data) => {
+          if (alive) setQueues(data);
+        })
+        .catch((err) => {
+          console.error('useCurrentQueues: fetch failed', err);
+        });
+    load();
+    // Safety net: periodically reconcile the board with the server so a
+    // dropped/missed SSE event can't leave a Display TV showing stale numbers.
+    // SSE remains the low-latency path; this just guarantees convergence.
+    const id = setInterval(load, 30_000);
     return () => {
       alive = false;
+      clearInterval(id);
     };
   }, [setQueues]);
 

@@ -87,6 +87,37 @@ export function VideoBackground({
     el.playbackRate = rate;
   }, [rate, current?.id]);
 
+  // Stall watchdog: on a 24/7 Display TV a video can stall (buffer underrun,
+  // GPU/codec hiccup) without firing `ended` or `error`, leaving the screen
+  // frozen until someone refreshes. Poll playback progress; if currentTime
+  // stops advancing while we expect it to play, nudge play(), then reload the
+  // source, and finally skip to the next clip. Self-heals without a refresh.
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el || !current) return;
+    let last = -1;
+    let stuck = 0;
+    const id = setInterval(() => {
+      if (!el || el.paused || el.ended) return;
+      if (el.currentTime > last + 0.01) {
+        last = el.currentTime;
+        stuck = 0;
+        return;
+      }
+      // Not advancing while playing → escalate recovery each tick.
+      stuck += 1;
+      if (stuck === 2) {
+        playWithMutedFallback(el);
+      } else if (stuck === 3) {
+        el.load(); // onLoadedData replays once data is ready
+      } else if (stuck >= 5) {
+        stuck = 0;
+        advance();
+      }
+    }, 2000);
+    return () => clearInterval(id);
+  }, [current?.id, advance]);
+
   return (
     <div className="display-vid">
       {current ? (
@@ -98,6 +129,8 @@ export function VideoBackground({
           muted={!audioEnabled}
           playsInline
           onLoadedData={(e) => playWithMutedFallback(e.currentTarget)}
+          onStalled={(e) => playWithMutedFallback(e.currentTarget)}
+          onWaiting={(e) => playWithMutedFallback(e.currentTarget)}
           onEnded={advance}
           onTimeUpdate={(e) => {
             const v = e.currentTarget;
