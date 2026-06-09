@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { z } from 'zod';
-import { fmtTime } from '@/lib/format';
 import { queueApi } from '@/lib/api/queue';
 import { toastError } from '@/lib/toast';
 import type { QueueItem } from '@/types/queue';
@@ -28,6 +28,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 export function IntakeForm({ token, serviceKey, serviceName }: IntakeFormProps) {
+  const router = useRouter();
   const [name, setName] = useState('');
   const [purpose, setPurpose] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -37,8 +38,15 @@ export function IntakeForm({ token, serviceKey, serviceName }: IntakeFormProps) 
 
   const label = serviceName || 'Layanan';
 
+  // Redirect to the waiting/monitoring page as soon as a ticket is available
+  useEffect(() => {
+    if (ticket) {
+      router.replace(`/m/${ticket.id}`);
+    }
+  }, [ticket, router]);
+
   // If this token already has a ticket (e.g. the visitor refreshed after
-  // submitting), show the number straight away instead of a blank form.
+  // submitting), redirect straight away instead of showing a blank form.
   useEffect(() => {
     let alive = true;
     queueApi
@@ -76,7 +84,7 @@ export function IntakeForm({ token, serviceKey, serviceName }: IntakeFormProps) 
           name: parsed.data.name,
           purpose: parsed.data.purpose,
         });
-        setTicket(q);
+        setTicket(q); // triggers redirect via the useEffect above
       } catch (err) {
         setFormError(
           err instanceof Error && err.message ? err.message : 'Gagal mengirim formulir. Coba lagi.',
@@ -88,6 +96,7 @@ export function IntakeForm({ token, serviceKey, serviceName }: IntakeFormProps) 
     })();
   };
 
+  // Show a brief loading state while the redirect is in progress
   if (ticket) {
     return (
       <div className="mobile screen" data-screen-label="04 Mobile">
@@ -104,41 +113,7 @@ export function IntakeForm({ token, serviceKey, serviceName }: IntakeFormProps) 
             gap: 14,
           }}
         >
-          <div
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              background: 'oklch(0.96 0.05 40)',
-              color: 'oklch(0.5 0.15 40)',
-              display: 'grid',
-              placeItems: 'center',
-            }}
-          >
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M5 12.5l4.5 4.5L19 7" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
-            Nomor Antrian · {label}
-          </div>
-          <div style={{ fontSize: 56, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1 }}>
-            {ticket.queue_number}
-          </div>
-          <p style={{ fontSize: 13.5, color: 'var(--ink-2)', margin: 0, maxWidth: 300, lineHeight: 1.5 }}>
-            Terima kasih{ticket.guest_name ? `, ${ticket.guest_name}` : ''}. Silakan tunggu panggilan
-            dan menuju loket sesuai layar saat nomor Anda dipanggil.
-          </p>
-          <a
-            href={`/m/${ticket.id}`}
-            className="btn btn-primary"
-            style={{ padding: 14, fontSize: 14, marginTop: 8, textDecoration: 'none' }}
-          >
-            Pantau status antrian
-          </a>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink-3)', marginTop: 8 }}>
-            {fmtTime(new Date())}
-          </div>
+          <div style={{ fontSize: 14, color: 'var(--ink-3)' }}>Mengalihkan ke halaman antrian…</div>
         </div>
         <div className="home-ind" />
       </div>
