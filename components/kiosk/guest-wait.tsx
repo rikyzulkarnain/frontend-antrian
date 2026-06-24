@@ -8,7 +8,11 @@ import { getSvcBg, getSvcBorder, getSvcFg, type Service } from '@/lib/constants'
 import { queueApi } from '@/lib/api/queue';
 import type { QueueItem } from '@/types/queue';
 
-const POLL_MS = 2500;
+// Cadence for polling the guest ticket. This is the only read here that the
+// backend can't serve from cache (it waits for a row that doesn't exist yet),
+// so every tick is a real DB query. 6s keeps the UX responsive while cutting
+// DB hits ~2.4x versus the old 2.5s, helping the Neon compute stay suspended.
+const POLL_MS = 6000;
 
 interface GuestWaitProps {
   svc: Service;
@@ -45,6 +49,9 @@ export function GuestWait({ svc, onTicket, onBack }: GuestWaitProps) {
     let alive = true;
     let done = false;
     const tick = async () => {
+      // Don't poll a backgrounded kiosk tab — the visitor isn't looking, and
+      // every skipped tick is one fewer query keeping the database awake.
+      if (typeof document !== 'undefined' && document.hidden) return;
       try {
         const q = await queueApi.getGuest(token);
         if (alive && !done && q) {

@@ -24,8 +24,11 @@ export function useCurrentQueues(): QueueItem[] {
     load();
     // Safety net: periodically reconcile the board with the server so a
     // dropped/missed SSE event can't leave a Display TV showing stale numbers.
-    // SSE remains the low-latency path; this just guarantees convergence.
-    const id = setInterval(load, 30_000);
+    // SSE remains the low-latency path; this just guarantees convergence, so a
+    // slow cadence is enough. Kept long (90s) so idle boards don't keep the
+    // database awake — the backend serves this read from cache between writes,
+    // letting Neon compute suspend when nothing is happening.
+    const id = setInterval(load, 90_000);
     return () => {
       alive = false;
       clearInterval(id);
