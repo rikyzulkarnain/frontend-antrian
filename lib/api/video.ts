@@ -10,15 +10,6 @@ export interface VideoInput {
   is_active?: boolean;
 }
 
-export interface UploadSignature {
-  signature: string;
-  timestamp: number;
-  api_key: string;
-  cloud_name: string;
-  folder?: string;
-  upload_preset?: string;
-}
-
 export const videoApi = {
   list(target?: VideoTarget): Promise<Video[]> {
     const qs = target ? `?target=${encodeURIComponent(target)}` : '';
@@ -35,9 +26,5 @@ export const videoApi = {
 
   remove(id: string): Promise<{ ok: true }> {
     return http.delete<{ ok: true }>(`/videos/${encodeURIComponent(id)}`);
-  },
-
-  uploadSignature(): Promise<UploadSignature> {
-    return http.post<UploadSignature>('/videos/upload-signature');
   },
 };

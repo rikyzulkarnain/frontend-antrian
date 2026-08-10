@@ -1,7 +1,7 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { videoApi } from '@/lib/api/video';
-import { uploadToCloudinary } from '@/lib/cloudinary';
+import { driveFileId } from '@/lib/video-url';
 import { toastError, toastSuccess } from '@/lib/toast';
 import type { Video, VideoTarget } from '@/types/video';
 import { cn } from '@/lib/utils';
@@ -14,11 +14,12 @@ export function VideoManager() {
   const [filter, setFilter] = useState<Filter>('all');
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState<Video | undefined>(undefined);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [newTitle, setNewTitle] = useState('');
+  const [newLink, setNewLink] = useState('');
+  const [newTarget, setNewTarget] = useState<VideoTarget>('both');
+  const [adding, setAdding] = useState(false);
 
   const refresh = async () => {
     try {
@@ -47,28 +48,30 @@ export function VideoManager() {
     };
   }, []);
 
-  const handleUpload = async (file: File) => {
-    if (uploading) return;
-    setUploading(true);
-    setProgress(0);
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (adding) return;
+    const link = newLink.trim();
+    if (!driveFileId(link)) {
+      toastError(null, 'Tautan tidak dikenali sebagai berkas Google Drive.');
+      return;
+    }
+    setAdding(true);
     try {
-      const sig = await videoApi.uploadSignature();
-      const result = await uploadToCloudinary(file, sig, setProgress);
       await videoApi.create({
-        title: file.name.replace(/\.[^.]+$/, ''),
-        url: result.secure_url,
-        target_screen: 'both',
-        duration_seconds: result.duration ? Math.round(result.duration) : null,
+        title: newTitle.trim(),
+        url: link,
+        target_screen: newTarget,
         is_active: true,
       });
-      toastSuccess('Video berhasil diunggah.');
+      toastSuccess('Video ditambahkan.');
+      setNewTitle('');
+      setNewLink('');
       await refresh();
     } catch (err) {
-      toastError(err, 'Upload video gagal.');
+      toastError(err, 'Gagal menambahkan video.');
     } finally {
-      setUploading(false);
-      setProgress(0);
-      if (inputRef.current) inputRef.current.value = '';
+      setAdding(false);
     }
   };
 
@@ -127,27 +130,65 @@ export function VideoManager() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <label className="upload-zone" style={{ cursor: uploading ? 'wait' : 'pointer' }}>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="video/mp4,video/webm"
-          style={{ display: 'none' }}
-          disabled={uploading}
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) void handleUpload(f);
-          }}
-        />
-        <div className="big">
-          {uploading
-            ? `↑ Mengunggah… ${Math.round(progress)}%`
-            : '↑ Tarik video ke sini, atau klik untuk pilih file'}
+      <div className="panel">
+        <div className="panel-head">
+          <div>
+            <div className="ttl">Tambah video dari Google Drive</div>
+            <div className="sub">
+              Unggah berkas ke Google Drive Anda, atur berbagi ke &quot;Siapa saja yang memiliki
+              link&quot;, lalu tempel tautannya di sini
+            </div>
+          </div>
         </div>
-        <div className="small">
-          Format yang didukung: MP4, WebM · Maks 500 MB per file · Upload disimpan ke Cloudinary
+        <div className="panel-body">
+          <form
+            onSubmit={handleAdd}
+            style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16 }}
+          >
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>
+                Judul<span style={{ color: 'var(--danger,#b91c1c)' }}> *</span>
+              </label>
+              <input
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Video anti gratifikasi BBPJN Sumsel"
+                required
+              />
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>
+                Tautan Google Drive<span style={{ color: 'var(--danger,#b91c1c)' }}> *</span>
+              </label>
+              <input
+                value={newLink}
+                onChange={(e) => setNewLink(e.target.value)}
+                placeholder="https://drive.google.com/file/d/1AbC.../view?usp=sharing"
+                required
+              />
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Target tayangan</label>
+              <select
+                value={newTarget}
+                onChange={(e) => setNewTarget(e.target.value as VideoTarget)}
+              >
+                <option value="kiosk">Kiosk</option>
+                <option value="display">Display TV</option>
+                <option value="both">Keduanya</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button type="submit" className="btn btn-primary" disabled={adding}>
+                {adding ? 'Menambahkan…' : 'Tambah video'}
+              </button>
+              <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>
+                Berkas yang belum dibagikan publik akan gagal diputar di TV.
+              </span>
+            </div>
+          </form>
         </div>
-      </label>
+      </div>
 
       <div className="panel">
         <div className="panel-head">

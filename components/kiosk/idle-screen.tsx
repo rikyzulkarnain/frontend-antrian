@@ -5,7 +5,7 @@ import { useClock } from '@/hooks/useClock';
 import { fmtTime } from '@/lib/format';
 import { useCurrentQueues } from '@/hooks/useCurrentQueues';
 import { useVideoPlaylist } from '@/hooks/useVideoPlaylist';
-import { deliveryVideoUrl } from '@/lib/cloudinary';
+import { deliveryVideoUrl } from '@/lib/video-url';
 
 export function IdleScreen() {
   const clock = useClock();

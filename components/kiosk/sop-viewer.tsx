@@ -124,8 +124,8 @@ export function SOPViewer({
                 </a>
               </div>
             )}
-            {/* QR unduh SOP: isinya persis link tombol "Unduh SOP" di atas, agar
-                pengunjung bisa membawa berkasnya di HP tanpa printer kiosk. */}
+            {/* QR unduh SOP: isinya persis tautan tombol "Lihat SOP lengkap" di
+                atas, agar pengunjung bisa membawa berkasnya di HP. */}
             {svc.sop_pdf_url && (
               <div style={{ textAlign: "center" }}>
                 <QRCodeSVG value={svc.sop_pdf_url} size={132} />

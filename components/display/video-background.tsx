@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useVideoPlaylist } from '@/hooks/useVideoPlaylist';
-import { deliveryVideoUrl } from '@/lib/cloudinary';
+import { deliveryVideoUrl } from '@/lib/video-url';
 
 const PLAYBACK_RATES = [1, 2, 4, 8] as const;
 type PlaybackRate = (typeof PLAYBACK_RATES)[number];

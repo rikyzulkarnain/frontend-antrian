@@ -56,15 +56,12 @@ describe('SOPViewer', () => {
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 
-  it('offers a download link plus a scan-to-download QR when a SOP PDF exists', () => {
+  it('pairs the SOP link with a scan-to-download QR when a SOP PDF exists', () => {
     const withPdf = { ...umum, sop_pdf_url: 'https://example.org/sop-umum.pdf' };
     const { container } = render(
       <SOPViewer svc={withPdf} onConfirm={vi.fn()} onBack={vi.fn()} />,
     );
 
-    const download = screen.getByRole('link', { name: /unduh sop/i });
-    expect(download).toHaveAttribute('href', withPdf.sop_pdf_url);
-    expect(download).toHaveAttribute('download');
     expect(screen.getByRole('link', { name: /lihat sop lengkap/i })).toHaveAttribute(
       'href',
       withPdf.sop_pdf_url,
@@ -77,13 +74,13 @@ describe('SOPViewer', () => {
   it('keeps the SOP download QR in guestMode', () => {
     const withPdf = { ...umum, sop_pdf_url: 'https://example.org/sop-umum.pdf' };
     render(<SOPViewer svc={withPdf} guestMode onConfirm={vi.fn()} onBack={vi.fn()} />);
-    expect(screen.getByRole('link', { name: /unduh sop/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /lihat sop lengkap/i })).toBeInTheDocument();
     expect(screen.getByText(/pindai untuk unduh sop/i)).toBeInTheDocument();
   });
 
   it('renders no SOP download affordances when the service has no PDF', () => {
     render(<SOPViewer svc={umum} onConfirm={vi.fn()} onBack={vi.fn()} />);
-    expect(screen.queryByRole('link', { name: /unduh sop/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /lihat sop lengkap/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/pindai untuk unduh sop/i)).not.toBeInTheDocument();
   });
 
