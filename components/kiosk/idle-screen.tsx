@@ -5,11 +5,12 @@ import { useClock } from '@/hooks/useClock';
 import { fmtTime } from '@/lib/format';
 import { useCurrentQueues } from '@/hooks/useCurrentQueues';
 import { useVideoPlaylist } from '@/hooks/useVideoPlaylist';
+import { deliveryVideoUrl } from '@/lib/cloudinary';
 
 export function IdleScreen() {
   const clock = useClock();
   const queues = useCurrentQueues();
-  const { current, index, total, advance } = useVideoPlaylist('kiosk');
+  const { current, index, total, advance, markFailed } = useVideoPlaylist('kiosk');
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [audioOn, setAudioOn] = useState(false);
   const waitingCount = queues.filter((q) => q.status === 'waiting').length;
@@ -135,14 +136,16 @@ export function IdleScreen() {
         {current ? (
           <video
             ref={videoRef}
-            src={current.url}
+            src={deliveryVideoUrl(current.url)}
             autoPlay
             loop={total <= 1}
             muted={!audioOn}
             playsInline
             onLoadedData={(e) => playVideoWithMutedFallback(e.currentTarget)}
             onEnded={advance}
-            onError={advance}
+            // Sumber rusak: buang dari playlist (advance() akan berputar balik
+            // ke video rusak yang sama saat playlist hanya berisi satu video).
+            onError={() => markFailed(current.id)}
             style={{
               position: 'absolute',
               inset: 0,

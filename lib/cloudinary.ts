@@ -1,5 +1,27 @@
 import type { UploadSignature } from './api/video';
 
+/**
+ * deliveryVideoUrl menyisipkan transformasi `q_auto` ke URL delivery
+ * Cloudinary. Tanpa itu Cloudinary mengirim berkas sumber apa adanya — layar
+ * Display yang memutar 24/7 menghabiskan kuota bandwidth bulanan dengan cepat,
+ * dan kuota yang jebol membuat seluruh cloud dinonaktifkan (semua aset balas
+ * HTTP 401 "cloud_name ... is disabled").
+ *
+ * No-op untuk URL non-Cloudinary atau URL yang sudah membawa transformasi.
+ */
+export function deliveryVideoUrl(url: string): string {
+  const marker = '/video/upload/';
+  const at = url.indexOf(marker);
+  if (!url.includes('res.cloudinary.com') || at === -1) return url;
+  const head = url.slice(0, at + marker.length);
+  const rest = url.slice(at + marker.length);
+  // Segmen transformasi selalu berbentuk `<kode>_<nilai>` (q_auto, f_auto,
+  // w_1280); segmen versi berbentuk `v1234...` tanpa underscore.
+  const firstSegment = rest.split('/')[0] ?? '';
+  if (/^[a-z]{1,3}_/.test(firstSegment)) return url;
+  return `${head}q_auto/${rest}`;
+}
+
 export interface CloudinaryUploadResult {
   secure_url: string;
   public_id: string;

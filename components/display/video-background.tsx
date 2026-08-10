@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useVideoPlaylist } from '@/hooks/useVideoPlaylist';
+import { deliveryVideoUrl } from '@/lib/cloudinary';
 
 const PLAYBACK_RATES = [1, 2, 4, 8] as const;
 type PlaybackRate = (typeof PLAYBACK_RATES)[number];
@@ -19,7 +20,7 @@ export function VideoBackground({
   ducked?: boolean;
   showDebugControls?: boolean;
 }) {
-  const { current, index, total, advance } = useVideoPlaylist('display');
+  const { current, index, total, advance, markFailed } = useVideoPlaylist('display');
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [progress, setProgress] = useState({ played: 0, duration: 0 });
   const [rate, setRate] = useState<PlaybackRate>(1);
@@ -123,7 +124,7 @@ export function VideoBackground({
       {current ? (
         <video
           ref={videoRef}
-          src={current.url}
+          src={deliveryVideoUrl(current.url)}
           autoPlay
           loop={total <= 1}
           muted={!audioEnabled}
@@ -136,7 +137,10 @@ export function VideoBackground({
             const v = e.currentTarget;
             setProgress({ played: v.currentTime, duration: v.duration || 0 });
           }}
-          onError={advance}
+          // Sumber rusak: buang dari playlist, jangan advance() — dengan
+          // playlist 1 video advance() balik ke video rusak yang sama dan layar
+          // membeku hitam sampai ada yang me-refresh TV.
+          onError={() => markFailed(current.id)}
           style={{
             position: 'absolute',
             inset: 0,

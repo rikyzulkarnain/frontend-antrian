@@ -72,15 +72,35 @@ export function SOPViewer({ svc, onConfirm, onBack, guestMode = false }: SOPView
             style={{ display: 'flex', gap: 16, marginTop: 16, alignItems: 'flex-start' }}
           >
             {svc.sop_pdf_url && (
-              <a
-                href={svc.sop_pdf_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="kiosk-cta"
-                style={{ flex: 1 }}
-              >
-                Lihat SOP lengkap (PDF) →
-              </a>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <a
+                  href={svc.sop_pdf_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="kiosk-cta"
+                >
+                  Lihat SOP lengkap (PDF) →
+                </a>
+                <a
+                  href={svc.sop_pdf_url}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="kiosk-cta"
+                >
+                  ↓ Unduh SOP
+                </a>
+              </div>
+            )}
+            {/* QR unduh SOP: isinya persis link tombol "Unduh SOP" di atas, agar
+                pengunjung bisa membawa berkasnya di HP tanpa printer kiosk. */}
+            {svc.sop_pdf_url && (
+              <div style={{ textAlign: 'center' }}>
+                <QRCodeSVG value={svc.sop_pdf_url} size={132} />
+                <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 6 }}>
+                  Pindai untuk unduh SOP
+                </div>
+              </div>
             )}
             {svc.qr_url && !guestMode && (
               <div style={{ textAlign: 'center' }}>

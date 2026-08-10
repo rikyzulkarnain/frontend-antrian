@@ -18,9 +18,9 @@ export function ServiceCard({ service, onPick }: ServiceCardProps) {
       <h3>{service.name}</h3>
       <p className="desc">{service.desc}</p>
       <div className="meta">
-        <span>Estimasi tunggu</span>
+        <span>Ketuk untuk lanjut</span>
         <span>
-          <span className="big">~{service.avgWait}m</span>
+          <span className="big" aria-hidden="true">→</span>
         </span>
       </div>
     </div>
