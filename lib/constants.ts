@@ -1,5 +1,13 @@
 import type { QueueItem, ServiceType } from '@/types/queue';
 
+/**
+ * Bagan alur pelayanan (PDF di Google Drive) yang bisa dibuka pengunjung dari
+ * layar pilih layanan di kiosk.
+ */
+export const ALUR_PELAYANAN_URL =
+  process.env.NEXT_PUBLIC_ALUR_PELAYANAN_URL ??
+  'https://drive.google.com/file/d/1vW26ujwP4gBmFvhxxOF8-b14PaY_oOku/view';
+
 export const SUPPORT_CONTACT = {
   email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? 'bbpjnsumsel06@gmail.com',
   whatsapp: process.env.NEXT_PUBLIC_SUPPORT_WA ?? '',

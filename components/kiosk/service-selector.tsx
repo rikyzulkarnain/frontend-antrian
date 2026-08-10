@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import { useClock } from '@/hooks/useClock';
 import { fmtDate, fmtTime } from '@/lib/format';
-import { type Service } from '@/lib/constants';
+import { ALUR_PELAYANAN_URL, type Service } from '@/lib/constants';
 import { ServiceCard } from './service-card';
 
 interface ServiceSelectorProps {
@@ -67,6 +67,30 @@ export function ServiceSelector({ services, onPick, onCancel }: ServiceSelectorP
           Ketuk salah satu kategori di bawah. Anda akan membaca SOP, lalu mengisi formulir singkat
           (nama &amp; keperluan) lewat QR di HP sebelum nomor antrian terbit.
         </p>
+        <a
+          href={ALUR_PELAYANAN_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn"
+          style={{ marginTop: 20, fontSize: 20, padding: '16px 26px', borderRadius: 14 }}
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            aria-hidden="true"
+          >
+            <path
+              d="M7 4h7l5 5v11a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z M14 4v5h5 M9 13h6 M9 17h6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Lihat alur pelayanan
+        </a>
       </div>
       <div className="kiosk-body">
         <div className="service-grid">
