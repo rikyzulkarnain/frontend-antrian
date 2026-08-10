@@ -19,6 +19,7 @@ interface YTPlayer {
   seekTo(seconds: number, allowSeekAhead: boolean): void;
   getCurrentTime(): number;
   getDuration(): number;
+  getPlayerState(): number;
   setPlaybackRate(rate: number): void;
   destroy(): void;
 }
@@ -95,6 +96,36 @@ export interface YouTubeVideoProps {
 const DUCKED_VOLUME = 12;
 const NORMAL_VOLUME = 100;
 
+// Menyalakan suara bisa melanggar kebijakan autoplay browser, dan YouTube tidak
+// melaporkannya: pemutaran berhenti diam-diam sementara getPlayerState() tetap
+// bilang PLAYING. Satu-satunya penanda yang jujur adalah posisi waktu yang tidak
+// bergerak. Jadi: nyalakan suara, lalu pastikan waktu benar-benar maju; kalau
+// tidak, kembalikan ke bisu dan putar lagi supaya layar tidak membeku di 00:00.
+const AUDIO_PROBE_MS = 1000;
+const PROBE_MIN_ADVANCE = 0.05;
+
+function tryEnableAudio(player: YTPlayer): void {
+  let before: number;
+  try {
+    before = player.getCurrentTime();
+  } catch {
+    return;
+  }
+  player.unMute();
+  player.playVideo();
+  setTimeout(() => {
+    // Pemutar bisa sudah dibuang saat timer menyala (video berganti / halaman
+    // pindah); pemanggilannya lalu melempar.
+    try {
+      if (player.getCurrentTime() > before + PROBE_MIN_ADVANCE) return;
+      player.mute();
+      player.playVideo();
+    } catch {
+      // pemutar sudah tidak ada — tidak ada yang perlu dipulihkan
+    }
+  }, AUDIO_PROBE_MS);
+}
+
 export function YouTubeVideo({
   videoId,
   audioEnabled,
@@ -108,6 +139,9 @@ export function YouTubeVideo({
 }: YouTubeVideoProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<YTPlayer | null>(null);
+  // Percobaan menyalakan suara hanya sekali per video; tanpa penjaga ini setiap
+  // kembali ke status PLAYING akan memicu probe lagi.
+  const audioTried = useRef(false);
 
   // Callback disimpan di ref agar pemutar tidak dibangun ulang tiap render
   // induk — membangun ulang berarti video mulai lagi dari awal.
@@ -127,6 +161,10 @@ export function YouTubeVideo({
           videoId,
           playerVars: {
             autoplay: 1,
+            // Wajib bisu sejak awal: browser hanya mengizinkan autoplay tanpa
+            // interaksi kalau video bisu. Suara dinyalakan belakangan oleh
+            // tryEnableAudio(), dengan pengaman kalau ternyata ditolak.
+            mute: 1,
             controls: 0,
             disablekb: 1,
             fs: 0,
@@ -137,14 +175,20 @@ export function YouTubeVideo({
           },
           events: {
             onReady: (e) => {
-              // Autoplay bersuara diblokir browser tanpa interaksi; mulai bisu
-              // lalu efek di bawah menyalakan suara begitu diizinkan.
+              playerRef.current = e.target;
+              // Mulai bisu tanpa syarat: hanya bentuk inilah yang dijamin boleh
+              // autoplay. Suara menyusul setelah pemutaran terbukti berjalan.
               e.target.mute();
               e.target.playVideo();
-              playerRef.current = e.target;
-              if (handlers.current.audioEnabled) e.target.unMute();
             },
             onStateChange: (e) => {
+              if (e.data === YT.PlayerState.PLAYING) {
+                if (handlers.current.audioEnabled && !audioTried.current) {
+                  audioTried.current = true;
+                  tryEnableAudio(e.target);
+                }
+                return;
+              }
               if (e.data !== YT.PlayerState.ENDED) return;
               if (handlers.current.loop) e.target.playVideo();
               else handlers.current.onEnded();
@@ -160,6 +204,7 @@ export function YouTubeVideo({
     return () => {
       cancelled = true;
       playerRef.current = null;
+      audioTried.current = false;
       player?.destroy();
     };
   }, [videoId]);
@@ -167,8 +212,35 @@ export function YouTubeVideo({
   useEffect(() => {
     const p = playerRef.current;
     if (!p) return;
-    if (audioEnabled) p.unMute();
-    else p.mute();
+    if (!audioEnabled) {
+      p.mute();
+      return;
+    }
+    if (audioTried.current) return;
+    audioTried.current = true;
+    tryEnableAudio(p);
+  }, [audioEnabled]);
+
+  // Cadangan bila autoplay bersuara ditolak: nyalakan suara pada interaksi
+  // pertama apa pun (sentuh layar / keyboard / remote). Layar tanpa interaksi
+  // tetap berjalan bisu, bukan membeku.
+  useEffect(() => {
+    if (!audioEnabled) return;
+    const unmute = () => {
+      const p = playerRef.current;
+      if (!p) return;
+      p.unMute();
+      p.playVideo();
+    };
+    const opts = { passive: true } as const;
+    window.addEventListener('pointerdown', unmute, opts);
+    window.addEventListener('keydown', unmute, opts);
+    window.addEventListener('touchstart', unmute, opts);
+    return () => {
+      window.removeEventListener('pointerdown', unmute);
+      window.removeEventListener('keydown', unmute);
+      window.removeEventListener('touchstart', unmute);
+    };
   }, [audioEnabled]);
 
   useEffect(() => {
