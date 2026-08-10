@@ -23,6 +23,15 @@ export const queueApi = {
     return http.get<QueueItem[]>('/queues?active=true');
   },
 
+  /**
+   * The most recently finished ticket, or null when nothing has been served
+   * yet. Lets the Display TV show the previous number instead of an empty
+   * board during quiet periods.
+   */
+  last(): Promise<QueueItem | null> {
+    return http.get<QueueItem | null>('/queues/last');
+  },
+
   get(id: string): Promise<QueueItem> {
     return http.get<QueueItem>(`/queues/${encodeURIComponent(id)}`);
   },

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { videoApi } from '@/lib/api/video';
-import { driveFileId } from '@/lib/video-url';
+import { youtubeVideoId } from '@/lib/video-url';
 import { toastError, toastSuccess } from '@/lib/toast';
 import type { Video, VideoTarget } from '@/types/video';
 import { cn } from '@/lib/utils';
@@ -52,8 +52,8 @@ export function VideoManager() {
     e.preventDefault();
     if (adding) return;
     const link = newLink.trim();
-    if (!driveFileId(link)) {
-      toastError(null, 'Tautan tidak dikenali sebagai berkas Google Drive.');
+    if (!youtubeVideoId(link)) {
+      toastError(null, 'Tautan tidak dikenali sebagai video YouTube.');
       return;
     }
     setAdding(true);
@@ -133,10 +133,10 @@ export function VideoManager() {
       <div className="panel">
         <div className="panel-head">
           <div>
-            <div className="ttl">Tambah video dari Google Drive</div>
+            <div className="ttl">Tambah video dari YouTube</div>
             <div className="sub">
-              Unggah berkas ke Google Drive Anda, atur berbagi ke &quot;Siapa saja yang memiliki
-              link&quot;, lalu tempel tautannya di sini
+              Unggah video ke YouTube dengan visibilitas Publik atau Tidak Publik (unlisted), lalu
+              tempel tautannya di sini
             </div>
           </div>
         </div>
@@ -158,12 +158,12 @@ export function VideoManager() {
             </div>
             <div className="field" style={{ marginBottom: 0 }}>
               <label>
-                Tautan Google Drive<span style={{ color: 'var(--danger,#b91c1c)' }}> *</span>
+                Tautan YouTube<span style={{ color: 'var(--danger,#b91c1c)' }}> *</span>
               </label>
               <input
                 value={newLink}
                 onChange={(e) => setNewLink(e.target.value)}
-                placeholder="https://drive.google.com/file/d/1AbC.../view?usp=sharing"
+                placeholder="https://youtu.be/dQw4w9WgXcQ"
                 required
               />
             </div>
@@ -183,7 +183,7 @@ export function VideoManager() {
                 {adding ? 'Menambahkan…' : 'Tambah video'}
               </button>
               <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>
-                Berkas yang belum dibagikan publik akan gagal diputar di TV.
+                Video berstatus Pribadi atau yang melarang penyematan akan gagal diputar di TV.
               </span>
             </div>
           </form>

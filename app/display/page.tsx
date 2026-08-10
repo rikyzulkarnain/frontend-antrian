@@ -9,6 +9,7 @@ import {
   type CallBanner,
 } from '@/components/display/queue-announcement';
 import { useCurrentQueues } from '@/hooks/useCurrentQueues';
+import { useLastQueue } from '@/hooks/useLastQueue';
 import { useQueueEvents } from '@/hooks/useQueueEvents';
 import { useAutoFullscreen } from '@/hooks/useAutoFullscreen';
 import { counterApi } from '@/lib/api/counter';
@@ -16,6 +17,7 @@ import { COUNTERS, type Counter } from '@/lib/constants';
 
 export default function DisplayPage() {
   const queues = useCurrentQueues();
+  const lastQueue = useLastQueue();
   const [counters, setCounters] = useState<Counter[]>(COUNTERS);
   const [banner, setBanner] = useState<CallBanner | null>(null);
   // Display TV biasanya tanpa mouse: suara langsung aktif. Agar benar-benar
@@ -78,7 +80,7 @@ export default function DisplayPage() {
     <main className="live-shell">
       <div className="display screen" data-screen-label="02 Display TV">
         <VideoBackground audioEnabled={audioActivated} ducked={!!banner} showDebugControls />
-        <CurrentQueueBoard queues={queues} counters={counters} />
+        <CurrentQueueBoard queues={queues} counters={counters} lastQueue={lastQueue} />
         <DisplayTicker />
         <QueueAnnouncement banner={banner} onDismiss={() => setBanner(null)} />
       </div>

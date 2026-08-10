@@ -1,9 +1,42 @@
 import { describe, expect, it } from 'vitest';
-import { deliveryVideoUrl, driveFileId } from '@/lib/video-url';
+import { deliveryVideoUrl, driveFileId, youtubeVideoId } from '@/lib/video-url';
 
 const CLOUDINARY = 'https://res.cloudinary.com/demo/video/upload';
 const ID = '1AbCdEfGhIjKlMnOpQrStUvWxYz';
 const DIRECT = `https://drive.usercontent.google.com/download?id=${ID}&export=download&confirm=t`;
+
+describe('youtubeVideoId', () => {
+  const YT = 'dQw4w9WgXcQ';
+
+  it('reads the id from every common YouTube link shape', () => {
+    expect(youtubeVideoId(`https://youtu.be/${YT}`)).toBe(YT);
+    expect(youtubeVideoId(`https://youtu.be/${YT}?t=30`)).toBe(YT);
+    expect(youtubeVideoId(`https://www.youtube.com/watch?v=${YT}`)).toBe(YT);
+    expect(youtubeVideoId(`https://www.youtube.com/watch?v=${YT}&list=PL123`)).toBe(YT);
+    expect(youtubeVideoId(`https://www.youtube.com/embed/${YT}`)).toBe(YT);
+    expect(youtubeVideoId(`https://www.youtube.com/shorts/${YT}`)).toBe(YT);
+    expect(youtubeVideoId(`https://www.youtube.com/live/${YT}`)).toBe(YT);
+    expect(youtubeVideoId(`https://m.youtube.com/watch?v=${YT}`)).toBe(YT);
+    expect(youtubeVideoId(`https://www.youtube-nocookie.com/embed/${YT}`)).toBe(YT);
+  });
+
+  it('accepts a bare 11-character id', () => {
+    expect(youtubeVideoId(YT)).toBe(YT);
+    expect(youtubeVideoId(`  ${YT}  `)).toBe(YT);
+  });
+
+  it('returns null for non-YouTube input', () => {
+    expect(youtubeVideoId('https://drive.google.com/file/d/1AbCdEfGhIjKlMn/view')).toBeNull();
+    expect(youtubeVideoId('https://example.org/watch?v=dQw4w9WgXcQ')).toBeNull();
+    expect(youtubeVideoId('bukan-url')).toBeNull();
+    expect(youtubeVideoId('')).toBeNull();
+  });
+
+  it('rejects YouTube URLs without a well-formed id', () => {
+    expect(youtubeVideoId('https://www.youtube.com/watch?v=tooshort')).toBeNull();
+    expect(youtubeVideoId('https://www.youtube.com/results?search_query=antrian')).toBeNull();
+  });
+});
 
 describe('driveFileId', () => {
   it('reads the id from a /file/d/ share link', () => {

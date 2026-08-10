@@ -9,13 +9,23 @@ import { cn } from '@/lib/utils';
 interface CurrentQueueBoardProps {
   queues?: QueueItem[];
   counters?: Counter[];
+  /** Antrian terakhir yang selesai; dipakai saat tidak ada antrian aktif. */
+  lastQueue?: QueueItem | null;
 }
 
-export function CurrentQueueBoard({ queues = [], counters = COUNTERS }: CurrentQueueBoardProps) {
+export function CurrentQueueBoard({
+  queues = [],
+  counters = COUNTERS,
+  lastQueue = null,
+}: CurrentQueueBoardProps) {
   const clock = useClock();
   const calling = queues.find((q) => q.status === 'calling');
   const serving = queues.filter((q) => q.status === 'serving');
-  const cur: QueueItem | undefined = calling ?? serving[0];
+  const active: QueueItem | undefined = calling ?? serving[0];
+  // Papan kosong membuat pengunjung mengira layar mati atau layanan belum
+  // mulai. Saat tak ada antrian aktif, tampilkan nomor terakhir yang selesai.
+  const cur: QueueItem | undefined = active ?? lastQueue ?? undefined;
+  const showingLast = !active && !!lastQueue;
 
   const others: QueueItem[] = serving
     .slice(calling ? 0 : 1)
@@ -64,8 +74,13 @@ export function CurrentQueueBoard({ queues = [], counters = COUNTERS }: CurrentQ
         </div>
       </div>
 
-      <div className={cn('display-now', calling && 'is-calling')}>
-        <span className="badge">{calling ? 'Sedang dipanggil' : 'Sedang dilayani'}</span>
+      <div
+        className={cn('display-now', calling && 'is-calling')}
+        style={showingLast ? { opacity: 0.72 } : undefined}
+      >
+        <span className="badge">
+          {showingLast ? 'Antrian terakhir' : calling ? 'Sedang dipanggil' : 'Sedang dilayani'}
+        </span>
         <div className="num">{cur ? cur.queue_number : '—'}</div>
         <div className="row">
           <div>
@@ -88,6 +103,11 @@ export function CurrentQueueBoard({ queues = [], counters = COUNTERS }: CurrentQ
           Antrian aktif lainnya
         </div>
         <div className="display-queue-list">
+          {others.length === 0 && (
+            <div className="item" style={{ justifyContent: 'flex-start', opacity: 0.6 }}>
+              <div className="ctr">Belum ada antrian menunggu</div>
+            </div>
+          )}
           {others.map((q) => {
             const counter = counters.find((c) => c.id === q.counter_id);
             return (

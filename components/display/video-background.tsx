@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useVideoPlaylist } from '@/hooks/useVideoPlaylist';
-import { deliveryVideoUrl } from '@/lib/video-url';
+import { deliveryVideoUrl, youtubeVideoId } from '@/lib/video-url';
+import { YouTubeVideo } from './youtube-video';
 
 const PLAYBACK_RATES = [1, 2, 4, 8] as const;
 type PlaybackRate = (typeof PLAYBACK_RATES)[number];
@@ -119,9 +120,24 @@ export function VideoBackground({
     return () => clearInterval(id);
   }, [current?.id, advance]);
 
+  const ytId = current ? youtubeVideoId(current.url) : null;
+
   return (
     <div className="display-vid">
-      {current ? (
+      {current && ytId ? (
+        <YouTubeVideo
+          key={current.id}
+          videoId={ytId}
+          audioEnabled={audioEnabled}
+          ducked={ducked}
+          loop={total <= 1}
+          playbackRate={rate}
+          onEnded={advance}
+          onError={() => markFailed(current.id)}
+          onProgress={(played, duration) => setProgress({ played, duration })}
+          style={{ position: 'absolute', inset: 0, background: '#050818' }}
+        />
+      ) : current ? (
         <video
           ref={videoRef}
           src={deliveryVideoUrl(current.url)}

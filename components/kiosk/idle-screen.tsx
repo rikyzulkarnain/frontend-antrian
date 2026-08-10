@@ -5,7 +5,8 @@ import { useClock } from '@/hooks/useClock';
 import { fmtTime } from '@/lib/format';
 import { useCurrentQueues } from '@/hooks/useCurrentQueues';
 import { useVideoPlaylist } from '@/hooks/useVideoPlaylist';
-import { deliveryVideoUrl } from '@/lib/video-url';
+import { deliveryVideoUrl, youtubeVideoId } from '@/lib/video-url';
+import { YouTubeVideo } from '@/components/display/youtube-video';
 
 export function IdleScreen() {
   const clock = useClock();
@@ -15,6 +16,7 @@ export function IdleScreen() {
   const [audioOn, setAudioOn] = useState(false);
   const waitingCount = queues.filter((q) => q.status === 'waiting').length;
   const callingNow = queues.find((q) => q.status === 'calling');
+  const ytId = current ? youtubeVideoId(current.url) : null;
 
   // Simpan audioOn di ref agar effect pemuatan video tak ikut bergantung
   // padanya (mencegah video ter-restart saat suara di-toggle).
@@ -133,7 +135,17 @@ export function IdleScreen() {
         </div>
       </div>
       <div className="vid-stage">
-        {current ? (
+        {current && ytId ? (
+          <YouTubeVideo
+            key={current.id}
+            videoId={ytId}
+            audioEnabled={audioOn}
+            loop={total <= 1}
+            onEnded={advance}
+            onError={() => markFailed(current.id)}
+            style={{ position: 'absolute', inset: 0, background: '#06090f' }}
+          />
+        ) : current ? (
           <video
             ref={videoRef}
             src={deliveryVideoUrl(current.url)}

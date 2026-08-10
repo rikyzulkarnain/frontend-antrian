@@ -5,6 +5,41 @@
  * ternormalisasi tanpa migrasi.
  */
 
+const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
+
+/**
+ * youtubeVideoId mengambil id video dari bentuk tautan YouTube apa pun
+ * (youtu.be/ID, watch?v=ID, /embed/ID, /shorts/ID, /live/ID) atau dari id
+ * mentah. Mengembalikan null untuk URL non-YouTube.
+ *
+ * YouTube dipakai sebagai host video karena penyedia berkas biasa (Google
+ * Drive) mengirim header `Cross-Origin-Resource-Policy: same-site` yang membuat
+ * browser menolak memakainya sebagai sumber tag <video> dari domain lain.
+ */
+export function youtubeVideoId(url: string): string | null {
+  const raw = url.trim();
+  if (YOUTUBE_ID.test(raw)) return raw;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return null;
+  }
+  const host = parsed.hostname.replace(/^www\./, '');
+  if (host === 'youtu.be') {
+    const id = parsed.pathname.slice(1).split('/')[0] ?? '';
+    return YOUTUBE_ID.test(id) ? id : null;
+  }
+  if (host !== 'youtube.com' && host !== 'm.youtube.com' && host !== 'youtube-nocookie.com') {
+    return null;
+  }
+  const v = parsed.searchParams.get('v');
+  if (v && YOUTUBE_ID.test(v)) return v;
+  const m = /^\/(?:embed|shorts|live|v)\/([A-Za-z0-9_-]{11})/.exec(parsed.pathname);
+  return m ? m[1] : null;
+}
+
 const DRIVE_HOSTS = /^https?:\/\/(?:drive|docs|drive\.usercontent)\.google\.com\//i;
 // Menangkap id dari /file/d/<id>/view, /open?id=<id>, /uc?id=<id>, /d/<id>.
 const DRIVE_ID = /(?:\/file\/d\/|\/d\/|[?&]id=)([A-Za-z0-9_-]{10,})/;
