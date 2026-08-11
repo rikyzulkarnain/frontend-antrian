@@ -1,9 +1,11 @@
 'use client';
+import { useState } from 'react';
 import Image from 'next/image';
 import { useClock } from '@/hooks/useClock';
 import { fmtDate, fmtTime } from '@/lib/format';
-import { ALUR_PELAYANAN_URL, type Service } from '@/lib/constants';
+import { INFO_LAYANAN_SLIDES, type Service } from '@/lib/constants';
 import { ServiceCard } from './service-card';
+import { InfoGallery } from './info-gallery';
 
 interface ServiceSelectorProps {
   services: Service[];
@@ -13,6 +15,7 @@ interface ServiceSelectorProps {
 
 export function ServiceSelector({ services, onPick, onCancel }: ServiceSelectorProps) {
   const clock = useClock();
+  const [infoOpen, setInfoOpen] = useState(false);
   return (
     <>
       <div className="kiosk-head" style={{ marginTop: 24 }}>
@@ -67,30 +70,65 @@ export function ServiceSelector({ services, onPick, onCancel }: ServiceSelectorP
           Ketuk salah satu kategori di bawah. Anda akan membaca SOP, lalu mengisi formulir singkat
           (nama &amp; keperluan) lewat QR di HP sebelum nomor antrian terbit.
         </p>
-        <a
-          href={ALUR_PELAYANAN_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn"
-          style={{ marginTop: 20, fontSize: 20, padding: '16px 26px', borderRadius: 14 }}
+        <button
+          type="button"
+          onClick={() => setInfoOpen(true)}
+          style={{
+            marginTop: 22,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 18,
+            padding: '18px 30px 18px 22px',
+            borderRadius: 18,
+            border: '1px solid var(--line-2)',
+            background: 'var(--surface)',
+            boxShadow: 'var(--sh-sm)',
+            cursor: 'pointer',
+            textAlign: 'left',
+          }}
         >
+          <span
+            aria-hidden="true"
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: 14,
+              background: 'oklch(0.95 0.05 85)',
+              color: 'oklch(0.45 0.14 85)',
+              display: 'grid',
+              placeItems: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path
+                d="M4 5.5A1.5 1.5 0 0 1 5.5 4h9A1.5 1.5 0 0 1 16 5.5v11A1.5 1.5 0 0 1 14.5 18h-9A1.5 1.5 0 0 1 4 16.5z M18 7.5h.5A1.5 1.5 0 0 1 20 9v9.5a1.5 1.5 0 0 1-1.5 1.5H9 M7 8h6 M7 11.5h6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <span>
+            <span style={{ display: 'block', fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em' }}>
+              Informasi Layanan
+            </span>
+            <span style={{ display: 'block', fontSize: 16, color: 'var(--ink-3)', marginTop: 2 }}>
+              Standar pelayanan, alur, dan SKM · {INFO_LAYANAN_SLIDES.length} lembar
+            </span>
+          </span>
           <svg
-            width="24"
-            height="24"
+            width="26"
+            height="26"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="1.8"
+            strokeWidth="2"
             aria-hidden="true"
+            style={{ marginLeft: 6, color: 'var(--ink-3)' }}
           >
-            <path
-              d="M7 4h7l5 5v11a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z M14 4v5h5 M9 13h6 M9 17h6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          Lihat alur pelayanan
-        </a>
+        </button>
       </div>
       <div className="kiosk-body">
         <div className="service-grid">
@@ -121,6 +159,9 @@ export function ServiceSelector({ services, onPick, onCancel }: ServiceSelectorP
         </button>
         <div style={{ fontFamily: 'var(--font-mono)' }}>v2.0 · Hub Layanan</div>
       </div>
+      {infoOpen && (
+        <InfoGallery slides={INFO_LAYANAN_SLIDES} onClose={() => setInfoOpen(false)} />
+      )}
     </>
   );
 }

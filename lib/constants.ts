@@ -1,12 +1,31 @@
 import type { QueueItem, ServiceType } from '@/types/queue';
+import { driveImageUrl } from './drive-image';
+
+export interface InfoSlide {
+  title: string;
+  src: string;
+}
 
 /**
- * Bagan alur pelayanan (PDF di Google Drive) yang bisa dibuka pengunjung dari
- * layar pilih layanan di kiosk.
+ * Papan informasi layanan yang bisa dibuka pengunjung dari layar pilih layanan
+ * di kiosk. Berkasnya ada di folder Drive milik BBPJN Sumsel; id di bawah
+ * diambil dari folder itu. Lihat driveImageUrl untuk alasan pemakaian host
+ * lh3.googleusercontent.com.
  */
-export const ALUR_PELAYANAN_URL =
-  process.env.NEXT_PUBLIC_ALUR_PELAYANAN_URL ??
-  'https://drive.google.com/file/d/1vW26ujwP4gBmFvhxxOF8-b14PaY_oOku/view';
+export const INFO_LAYANAN_SLIDES: InfoSlide[] = [
+  {
+    title: 'Standar Minimal Komponen Pelayanan',
+    src: driveImageUrl('16-l0CH4_I4fIzuIlrygtzkKUa0T-EUYy'),
+  },
+  {
+    title: 'Alur Pelayanan Kantor',
+    src: driveImageUrl('1lwDeBrXLGswPcPKPxrX2xC0ah9ARaBnC'),
+  },
+  {
+    title: 'Survei Kepuasan Masyarakat (SKM)',
+    src: driveImageUrl('1v19OhUThkpFPvqLiIaMMjIOyfRocAm5L'),
+  },
+];
 
 export const SUPPORT_CONTACT = {
   email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? 'bbpjnsumsel06@gmail.com',
