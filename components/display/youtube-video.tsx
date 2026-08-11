@@ -93,8 +93,10 @@ export interface YouTubeVideoProps {
   style?: React.CSSProperties;
 }
 
-const DUCKED_VOLUME = 12;
-const NORMAL_VOLUME = 100;
+// Video di sini hanya latar; pengumuman nomor antrian yang harus terdengar.
+// Volume dasar sengaja jauh di bawah penuh, lalu diredam lagi selama panggilan.
+const NORMAL_VOLUME = 35;
+const DUCKED_VOLUME = 5;
 
 // Menyalakan suara bisa melanggar kebijakan autoplay browser, dan YouTube tidak
 // melaporkannya: pemutaran berhenti diam-diam sementara getPlayerState() tetap
@@ -104,13 +106,17 @@ const NORMAL_VOLUME = 100;
 const AUDIO_PROBE_MS = 1000;
 const PROBE_MIN_ADVANCE = 0.05;
 
-function tryEnableAudio(player: YTPlayer): void {
+function tryEnableAudio(player: YTPlayer, volume: number): void {
   let before: number;
   try {
     before = player.getCurrentTime();
   } catch {
     return;
   }
+  // Volume harus diset di sini, bukan hanya saat status redam berubah: pemutar
+  // yang baru di-unmute kembali ke bawaan YouTube (100) dan menenggelamkan
+  // pengumuman antrian.
+  player.setVolume(volume);
   player.unMute();
   player.playVideo();
   setTimeout(() => {
@@ -143,11 +149,13 @@ export function YouTubeVideo({
   // kembali ke status PLAYING akan memicu probe lagi.
   const audioTried = useRef(false);
 
+  const volume = ducked ? DUCKED_VOLUME : NORMAL_VOLUME;
+
   // Callback disimpan di ref agar pemutar tidak dibangun ulang tiap render
   // induk — membangun ulang berarti video mulai lagi dari awal.
-  const handlers = useRef({ onEnded, onError, onProgress, loop, audioEnabled });
+  const handlers = useRef({ onEnded, onError, onProgress, loop, audioEnabled, volume });
   useEffect(() => {
-    handlers.current = { onEnded, onError, onProgress, loop, audioEnabled };
+    handlers.current = { onEnded, onError, onProgress, loop, audioEnabled, volume };
   });
 
   useEffect(() => {
@@ -185,7 +193,7 @@ export function YouTubeVideo({
               if (e.data === YT.PlayerState.PLAYING) {
                 if (handlers.current.audioEnabled && !audioTried.current) {
                   audioTried.current = true;
-                  tryEnableAudio(e.target);
+                  tryEnableAudio(e.target, handlers.current.volume);
                 }
                 return;
               }
@@ -218,7 +226,7 @@ export function YouTubeVideo({
     }
     if (audioTried.current) return;
     audioTried.current = true;
-    tryEnableAudio(p);
+    tryEnableAudio(p, handlers.current.volume);
   }, [audioEnabled]);
 
   // Cadangan bila autoplay bersuara ditolak: nyalakan suara pada interaksi
@@ -229,6 +237,7 @@ export function YouTubeVideo({
     const unmute = () => {
       const p = playerRef.current;
       if (!p) return;
+      p.setVolume(handlers.current.volume);
       p.unMute();
       p.playVideo();
     };
@@ -244,8 +253,8 @@ export function YouTubeVideo({
   }, [audioEnabled]);
 
   useEffect(() => {
-    playerRef.current?.setVolume(ducked ? DUCKED_VOLUME : NORMAL_VOLUME);
-  }, [ducked]);
+    playerRef.current?.setVolume(volume);
+  }, [volume]);
 
   useEffect(() => {
     playerRef.current?.setPlaybackRate(playbackRate);

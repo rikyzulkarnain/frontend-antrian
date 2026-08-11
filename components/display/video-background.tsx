@@ -8,9 +8,10 @@ const PLAYBACK_RATES = [1, 2, 4, 8] as const;
 type PlaybackRate = (typeof PLAYBACK_RATES)[number];
 
 // Volume video saat ada panggilan nomor antrian (di-ducking agar suara
-// panggilan terdengar jelas) vs. volume normal.
-const DUCKED_VOLUME = 0.12;
-const NORMAL_VOLUME = 1;
+// panggilan terdengar jelas) vs. volume normal. Disamakan dengan pemutar
+// YouTube: video hanya latar, pengumuman antrian yang harus menonjol.
+const DUCKED_VOLUME = 0.05;
+const NORMAL_VOLUME = 0.35;
 
 export function VideoBackground({
   audioEnabled = false,
