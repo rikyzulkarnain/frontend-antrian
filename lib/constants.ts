@@ -33,6 +33,27 @@ export const SUPPORT_CONTACT = {
   hours: 'Senin–Jumat, 08.00–16.00 WIB',
 };
 
+/**
+ * Call center WhatsApp untuk Layanan Konsultasi. `phone` dipakai di URL wa.me
+ * (format internasional, tanpa tanda + dan tanpa spasi); `display` yang
+ * ditampilkan ke pengunjung.
+ */
+export const CALL_CENTER_WA = {
+  phone: process.env.NEXT_PUBLIC_CALL_CENTER_WA ?? '6281369005006',
+  display: '+62 813-6900-5006',
+};
+
+/** Pilihan topik pada formulir Layanan Konsultasi. */
+export const CONSULTATION_TOPICS = [
+  'Pengaduan',
+  'Informasi Layanan Umum',
+  'Layanan Laboratorium',
+  'Layanan AMP',
+  'Layanan Utilitas',
+  'Sewa Alat',
+  'Lainnya',
+];
+
 export interface Service {
   key: ServiceType;
   code: string;
