@@ -10,10 +10,11 @@ import { InfoGallery } from './info-gallery';
 interface ServiceSelectorProps {
   services: Service[];
   onPick: (svc: Service) => void;
+  onConsult: () => void;
   onCancel: () => void;
 }
 
-export function ServiceSelector({ services, onPick, onCancel }: ServiceSelectorProps) {
+export function ServiceSelector({ services, onPick, onConsult, onCancel }: ServiceSelectorProps) {
   const clock = useClock();
   const [infoOpen, setInfoOpen] = useState(false);
   return (
@@ -135,16 +136,37 @@ export function ServiceSelector({ services, onPick, onCancel }: ServiceSelectorP
           {services.map((s) => (
             <ServiceCard key={s.key} service={s} onPick={onPick} />
           ))}
-          <div
-            className="service-card"
-            style={{ background: 'var(--bg-2)', borderStyle: 'dashed', cursor: 'default' }}
-          >
-            <div style={{ fontSize: 22, color: 'var(--ink-3)', fontWeight: 500 }}>
-              Butuh bantuan?
+          {/*
+            Konsultasi tidak lewat loket, jadi kartunya bukan bagian dari
+            `services` (yang berasal dari API antrian) melainkan pintu masuk
+            terpisah ke formulir konsultasi + WhatsApp call center.
+          */}
+          <div className="service-card" data-key="KONSUL" onClick={onConsult}>
+            <div
+              className="glyph"
+              style={{
+                background: 'oklch(0.95 0.045 175)',
+                color: 'oklch(0.42 0.13 175)',
+                borderColor: 'oklch(0.88 0.06 175)',
+              }}
+            >
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path
+                  d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.9-.9L3 20.5l1.6-4.8A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4z"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </div>
-            <div style={{ fontSize: 18, color: 'var(--ink-2)', lineHeight: 1.4 }}>
-              Tekan tombol bel di samping kiosk untuk memanggil petugas resepsionis. Tersedia kursi
-              prioritas untuk lansia dan disabilitas.
+            <h3>Layanan Konsultasi</h3>
+            <p className="desc">
+              Tanya informasi layanan atau pengaduan langsung ke call center lewat WhatsApp.
+            </p>
+            <div className="meta">
+              <span>Ketuk untuk pindai QR</span>
+              <span>
+                <span className="big" aria-hidden="true">→</span>
+              </span>
             </div>
           </div>
         </div>

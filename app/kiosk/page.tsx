@@ -4,6 +4,7 @@ import { IdleScreen } from '@/components/kiosk/idle-screen';
 import { ServiceSelector } from '@/components/kiosk/service-selector';
 import { SOPViewer } from '@/components/kiosk/sop-viewer';
 import { GuestWait } from '@/components/kiosk/guest-wait';
+import { ConsultationQR } from '@/components/kiosk/consultation-qr';
 import { TicketDisplay } from '@/components/kiosk/ticket-display';
 import { SERVICES, type Service } from '@/lib/constants';
 import { useAutoFullscreen } from '@/hooks/useAutoFullscreen';
@@ -14,9 +15,14 @@ import type { Service as ApiService } from '@/types/service';
 
 // Every service follows the same flow: read the SOP, then register name +
 // purpose via the QR form on the visitor's phone before a number is issued.
-type Step = 'idle' | 'select' | 'sop' | 'guest' | 'ticket';
+// `konsultasi` is the one exception — it hands the visitor off to the WhatsApp
+// call center instead of issuing a queue number.
+type Step = 'idle' | 'select' | 'sop' | 'guest' | 'konsultasi' | 'ticket';
 
 const TICKET_AUTO_RESET_MS = 18000;
+// Layar konsultasi tidak menunggu tiket, jadi ia butuh batas waktunya sendiri
+// supaya kiosk kembali idle kalau pengunjung meninggalkannya.
+const CONSULT_AUTO_RESET_MS = 120000;
 const SERVICES_REFRESH_MS = 5 * 60 * 1000; // 5 menit
 
 function fromApi(s: ApiService): Service {
@@ -76,8 +82,11 @@ export default function KioskPage() {
   }, []);
 
   useEffect(() => {
-    if (step !== 'ticket') return;
-    const t = setTimeout(reset, TICKET_AUTO_RESET_MS);
+    if (step !== 'ticket' && step !== 'konsultasi') return;
+    const t = setTimeout(
+      reset,
+      step === 'ticket' ? TICKET_AUTO_RESET_MS : CONSULT_AUTO_RESET_MS,
+    );
     return () => clearTimeout(t);
   }, [step]);
 
@@ -96,9 +105,11 @@ export default function KioskPage() {
               setService(svc);
               setStep('sop');
             }}
+            onConsult={() => setStep('konsultasi')}
             onCancel={reset}
           />
         )}
+        {step === 'konsultasi' && <ConsultationQR onBack={() => setStep('select')} />}
         {step === 'sop' && service && (
           <SOPViewer
             svc={service}
